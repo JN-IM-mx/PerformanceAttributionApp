@@ -1,3 +1,5 @@
+from email.policy import default
+
 import streamlit as st
 import datetime
 import pandas as pd
@@ -19,6 +21,7 @@ st.set_page_config(
 # Page title
 st.markdown('### :bar_chart: Performance attribution')
 
+# Use TPK data or custom data
 data_source_toggle = st.segmented_control("",["TPK data", "Custom data"], default="TPK data")
 
 # Load csv data
@@ -35,21 +38,27 @@ else:
 if portfolios_file is not None and benchmarks_file is not None:
 
     # User settings
-    settings_row = st.columns(4)
+    settings_row = st.columns(5)
     model = settings_row[0].selectbox('Model', ['Brinson-Fachler', 'Brinson-Hood-Beebower'])
     reference_date = settings_row[1].date_input('Start date', datetime.date(2019, 12, 31))
     decimal_places = settings_row[2].selectbox('Decimal places', (2, 4, 8, 12))
-
-    # Create 2 rows and 2 columns, left column is for allocation criteria/instrument, right for analysis results
-    analysis_master_row = st.columns([0.25, 0.75])
-    analysis_detail_row = st.columns([0.25, 0.75])
 
     # Load the data files, replacing NaNs with zeros
     portfolio_df = pd.read_csv(portfolios_file).fillna(0)
     benchmark_df = pd.read_csv(benchmarks_file).fillna(0)
     classifications_df = pd.read_csv(classifications_file).fillna(0)
 
-    # Execute Brinson-Fachler Analysis with the selected criteria
+    # Retrieve the list of portfolios and benchmarks from the dataframes
+    portfolios = portfolio_df["Portfolio"].unique()
+    benchmarks = benchmark_df["Benchmark"].unique()
+
+    # Allow the user to select the list of portfolios and benchmarks to perform the analysis on
+    selected_portfolios = settings_row[3].multiselect("Portfolios", portfolios, default=portfolios[0])
+    selected_benchmark = settings_row[4].selectbox("Benchmark", benchmarks)
+
+    # Create 2 rows and 2 columns, left column is for allocation criteria/instrument, right for analysis results
+    analysis_master_row = st.columns([0.25, 0.75])
+    analysis_detail_row = st.columns([0.25, 0.75])
 
     # Radio button in the left pane, allowing to select a classification criteria
     classification_criteria = analysis_master_row[0].radio(
@@ -58,7 +67,7 @@ if portfolios_file is not None and benchmarks_file is not None:
     )
 
     # Prepare the data
-    prepared_data = prepare_data(portfolio_df, benchmark_df, classifications_df, classification_criteria)
+    prepared_data = prepare_data(portfolios, benchmarks, portfolio_df, benchmark_df, classifications_df, classification_criteria)
 
     brinson_fachler_result = brinson_fachler(prepared_data, classification_criteria)
     brinson_hood_beebower_result = brinson_hood_beebower(prepared_data, classification_criteria)

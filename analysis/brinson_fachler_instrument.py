@@ -1,39 +1,59 @@
-def brinson_fachler_instrument(prepared_data_df, classif_criteria, classif_value):
-    bf_df = prepared_data_df
+def selection_by_instrument(delta_mv_ptf,
+                            previous_mv_ptf,
+                            total_previous_mv_ptf,
+                            delta_mv_classif_benchmark,
+                            previous_mv_classif_benchmark
+                            ):
+    if previous_mv_ptf != 0 and previous_mv_classif_benchmark != 0:
+        weight_ptf = previous_mv_ptf / total_previous_mv_ptf
+        return_ptf = delta_mv_ptf / previous_mv_ptf
+        return_classif_bm = delta_mv_classif_benchmark / previous_mv_classif_benchmark
+        selection = weight_ptf * (return_ptf - return_classif_bm)
+    else:
+        selection = 0
 
-    # Calculate weights and returns
-    bf_df['Weight_portfolio'] = bf_df['PreviousMv_portfolio'] / bf_df.groupby('Start Date')[
-        'PreviousMv_portfolio'].transform('sum')
-    bf_df['Weight_benchmark'] = bf_df['PreviousMv_benchmark'] / bf_df.groupby('Start Date')[
-        'PreviousMv_benchmark'].transform('sum')
+    return selection
 
-    # Remove rows for which both the portfolio and benchmark weights are 0
-    bf_df = bf_df[(bf_df['Weight_portfolio'] != 0) | (bf_df['Weight_benchmark'] != 0)]  # to be changed
 
-    bf_df['Return_portfolio'] = bf_df.apply(
-        lambda row: row['DeltaMv_portfolio'] / row['PreviousMv_portfolio']
-        if row['Weight_portfolio'] != 0
-        else row['DeltaMv_benchmark'] / row['PreviousMv_benchmark'],
-        axis=1
-    )
-    bf_df['Return_benchmark'] = bf_df.apply(
-        lambda row: row['DeltaMv_benchmark'] / row['PreviousMv_benchmark']
-        if row['Weight_benchmark'] != 0
-        else row['DeltaMv_portfolio'] / row['PreviousMv_portfolio'],
-        axis=1
-    )
+def brinson_fachler_instrument(data_df, classification_criteria, classification_value):
+    selection_columns = ["Start Date",
+                         classification_criteria,
+                         "Product description",
+                         "PreviousMv_portfolio",
+                         "DeltaMv_portfolio",
+                         "PreviousMv_benchmark",
+                         "DeltaMv_benchmark"
+                         ]
 
-    # Filter the dataframe on the matching classification
-    bf_df = bf_df[
-        bf_df[classif_criteria] == classif_value
-        ]
+    selection_df = data_df[selection_columns]
 
-    # Add Total Level benchmark return column
-    bf_df['Total_Level_Return_benchmark'] = \
-        bf_df.groupby('Start Date')['DeltaMv_benchmark'].transform('sum') / \
-        bf_df.groupby('Start Date')['PreviousMv_benchmark'].transform('sum')
+    # Compute the total previous
+    selection_df = selection_df.copy()
+    selection_df["TotalPreviousMv_portfolio"] = selection_df.groupby("Start Date")["PreviousMv_portfolio"].transform("sum")
 
-    bf_df['Selection Effect'] = \
-        bf_df['Weight_portfolio'] * (bf_df['Return_portfolio'] - bf_df['Total_Level_Return_benchmark'])
+    # Filter on the value of the classification
+    selection_df = selection_df[selection_df[classification_criteria] == classification_value]
 
-    return bf_df
+
+    # Compute delta and previous MVs per date for the benchmark
+    selection_df["ClassifPreviousMv_benchmark"] = selection_df.groupby("Start Date")["PreviousMv_benchmark"].transform("sum")
+    selection_df["ClassifDeltaMv_benchmark"] = selection_df.groupby("Start Date")["DeltaMv_benchmark"].transform("sum")
+
+    # # Calculate weights per date
+    # attribution_df["Weight_portfolio"] = attribution_df["PreviousMv_portfolio"] / attribution_df["TotalPreviousMv_portfolio"]
+    # attribution_df["Weight_benchmark"] = attribution_df["PreviousMv_benchmark"] / attribution_df["TotalPreviousMv_benchmark"]
+
+    selection_df["Selection Effect"] = selection_df.apply(
+        lambda row: selection_by_instrument(
+            row["DeltaMv_portfolio"],
+            row["PreviousMv_portfolio"],
+            row["TotalPreviousMv_portfolio"],
+            row["ClassifDeltaMv_benchmark"],
+            row["ClassifPreviousMv_benchmark"]
+        ),
+        axis=1)
+
+    selection_columns = ["Start Date", "Product description", "Selection Effect"]
+    selection_df = selection_df[selection_columns]
+
+    return selection_df
