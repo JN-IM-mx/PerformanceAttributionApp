@@ -7,7 +7,6 @@ from analysis.brinson_fachler_instrument import brinson_fachler_instrument
 from analysis.brinson_hood_beebower import brinson_hood_beebower
 from analysis.total_returns import total_returns
 from analysis.grap_smoothing import grap_smoothing
-from utils.load_data import load_data
 from utils.styling import highlight_total_row
 
 # Streamlit page configuration
@@ -20,21 +19,30 @@ st.set_page_config(
 # Page title
 st.markdown('### :bar_chart: Performance attribution')
 
-# Load data
-file_upload_container = st.container(border=True)
-file_upload_row = file_upload_container.columns(2)
-portfolios_file, benchmarks_file, classifications_file = load_data(file_upload_row[0], file_upload_row[1])
+data_source_toggle = st.segmented_control("",["TPK data", "Custom data"], default="TPK data")
+
+# Load csv data
+classifications_file = "./data/equities_classifications.csv"
+if data_source_toggle == "TPK data":
+    portfolios_file = "./data/portfolios.csv"
+    benchmarks_file = "./data/benchmarks.csv"
+else:
+    file_upload_row = st.container(border=True).columns(2)
+    portfolios_file = file_upload_row[0].file_uploader("portfolios.csv file", help="File produced by the Performance service")
+    benchmarks_file = file_upload_row[1].file_uploader("benchmarks.csv file", help="File produced by the Performance service")
 
 # App logic when input files are loaded
 if portfolios_file is not None and benchmarks_file is not None:
+
     # User settings
-    settings_row = st.columns(6)
+    settings_row = st.columns(4)
     model = settings_row[0].selectbox('Model', ['Brinson-Fachler', 'Brinson-Hood-Beebower'])
     reference_date = settings_row[1].date_input('Start date', datetime.date(2019, 12, 31))
     decimal_places = settings_row[2].selectbox('Decimal places', (2, 4, 8, 12))
 
-    analysis_master_row = st.columns([0.3, 0.7])
-    analysis_detail_row = st.columns([0.3, 0.7])
+    # Create 2 rows and 2 columns, left column is for allocation criteria/instrument, right for analysis results
+    analysis_master_row = st.columns([0.25, 0.75])
+    analysis_detail_row = st.columns([0.25, 0.75])
 
     # Load the data files, replacing NaNs with zeros
     portfolio_df = pd.read_csv(portfolios_file).fillna(0)
@@ -42,6 +50,8 @@ if portfolios_file is not None and benchmarks_file is not None:
     classifications_df = pd.read_csv(classifications_file).fillna(0)
 
     # Execute Brinson-Fachler Analysis with the selected criteria
+
+    # Radio button in the left pane, allowing to select a classification criteria
     classification_criteria = analysis_master_row[0].radio(
         'Allocation criteria',
         ['GICS sector', 'GICS industry group', 'GICS industry', 'GICS sub-industry', 'Region', 'Country'],
