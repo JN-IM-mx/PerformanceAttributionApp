@@ -1,44 +1,207 @@
-def brinson_hood_beebower(prepared_data_df, classification):
-    bhb_df = prepared_data_df.groupby(['Start Date', classification]).agg({
-        'DeltaMv_portfolio': 'sum',
-        'DeltaMv_benchmark': 'sum',
-        'PreviousMv_portfolio': 'sum',
-        'PreviousMv_benchmark': 'sum'
-    }).reset_index()
+def allocation_computation(delta_mv_ptf,
+                           previous_mv_ptf,
+                           total_previous_mv_ptf,
+                           delta_mv_bm,
+                           previous_mv_bm,
+                           total_previous_mv_bm,
+                           ):
 
-    # Calculate weights and returns
-    bhb_df['Weight_portfolio'] = \
-        bhb_df['PreviousMv_portfolio'] / bhb_df.groupby('Start Date')['PreviousMv_portfolio'].transform('sum')
+    weight_ptf = previous_mv_ptf / total_previous_mv_ptf
 
-    bhb_df['Weight_benchmark'] = \
-        bhb_df['PreviousMv_benchmark'] / bhb_df.groupby('Start Date')['PreviousMv_benchmark'].transform('sum')
+    if previous_mv_bm != 0:
+        # Standard Brinson-Hood-Beebower formula
+        weight_bm = previous_mv_bm / total_previous_mv_bm
+        return_bm = delta_mv_bm / previous_mv_bm
+        allocation_effect = (weight_ptf - weight_bm) * return_bm
+    else:
+        # Exception case: contribution_i
+        allocation_effect = delta_mv_ptf / total_previous_mv_ptf
+    return allocation_effect
 
-    bhb_df['Return_portfolio'] = bhb_df.apply(
-        lambda row: row['DeltaMv_portfolio'] / row['PreviousMv_portfolio']
-        if row['Weight_portfolio'] != 0
-        else row['DeltaMv_benchmark'] / row['PreviousMv_benchmark'], axis=1
-    )
 
-    bhb_df['Return_benchmark'] = bhb_df.apply(
-        lambda row: row['DeltaMv_benchmark'] / row['PreviousMv_benchmark']
-        if row['Weight_benchmark'] != 0
-        else row['DeltaMv_portfolio'] / row['PreviousMv_portfolio'], axis=1)
+def selection_computation(delta_mv_ptf,
+                          previous_mv_ptf,
+                          delta_mv_bm,
+                          previous_mv_bm,
+                          total_previous_mv_bm
+                          ):
+    if previous_mv_ptf != 0 and previous_mv_bm != 0:
+        # Standard Brinson-Hood-Beebower formula
+        weight_bm = previous_mv_bm / total_previous_mv_bm
+        return_ptf = delta_mv_ptf / previous_mv_ptf
+        return_bm = delta_mv_bm / previous_mv_bm
+        selection_effect = weight_bm * (return_ptf - return_bm)
+    else:
+        # Exception case: selection is zero
+        selection_effect = 0
+    return selection_effect
 
-    bhb_df['Total_Return_benchmark'] = \
-        bhb_df.groupby('Start Date')['DeltaMv_benchmark'].transform('sum') \
-        / bhb_df.groupby('Start Date')['PreviousMv_benchmark'].transform('sum')
 
-    bhb_df['Total_Return_portfolio'] = \
-        bhb_df.groupby('Start Date')['DeltaMv_portfolio'].transform('sum')\
-        / bhb_df.groupby('Start Date')['PreviousMv_portfolio'].transform('sum')
+def interaction_computation(delta_mv_ptf,
+                            previous_mv_ptf,
+                            total_previous_mv_ptf,
+                            delta_mv_bm,
+                            previous_mv_bm,
+                            total_previous_mv_bm
+                            ):
+    if previous_mv_ptf != 0 and previous_mv_bm != 0:
+        # Standard Brinson-Hood-Beebower formula
+        weight_ptf = previous_mv_ptf / total_previous_mv_ptf
+        weight_bm = previous_mv_bm / total_previous_mv_bm
+        return_ptf = delta_mv_ptf / previous_mv_ptf
+        return_bm = delta_mv_bm / previous_mv_bm
+        interaction_effect = (weight_ptf - weight_bm) * (return_ptf - return_bm)
+    else:
+        # Exception case: interaction is zero
+        interaction_effect = 0
+    return interaction_effect
 
-    # Compute Allocation, Selection and Interaction effects of the BHB model
-    bhb_df['Allocation Effect'] = (bhb_df['Weight_portfolio'] - bhb_df['Weight_benchmark']) * bhb_df['Return_benchmark']
 
-    bhb_df['Selection Effect'] = bhb_df['Weight_benchmark'] * (bhb_df['Return_portfolio'] - bhb_df['Return_benchmark'])
+def selection_by_instrument(delta_mv_classif_ptf,
+                            previous_mv_classif_ptf,
+                            delta_mv_bm,
+                            previous_mv_bm,
+                            total_previous_mv_bm
+                            ):
+    if previous_mv_bm != 0 and previous_mv_classif_ptf != 0:
+        weight_bm = previous_mv_bm / total_previous_mv_bm
+        return_classif_ptf = delta_mv_classif_ptf / previous_mv_classif_ptf
+        return_bm = delta_mv_bm / previous_mv_bm
+        selection = weight_bm * (return_classif_ptf - return_bm)
+    else:
+        selection = 0
 
-    bhb_df['Interaction Effect'] = \
-        (bhb_df['Weight_portfolio'] - bhb_df['Weight_benchmark'])\
-        * (bhb_df['Return_portfolio'] - bhb_df['Return_benchmark'])
+    return selection
 
-    return bhb_df
+def interaction_by_instrument(previous_mv_ptf,
+                              total_previous_mv_ptf,
+                              delta_mv_classif_ptf,
+                              previous_mv_classif_ptf,
+                              previous_mv_bm,
+                              total_previous_mv_bm,
+                              delta_mv_classif_bm,
+                              previous_mv_classif_bm
+                            ):
+    if previous_mv_classif_ptf != 0 and previous_mv_classif_bm != 0:
+        weight_ptf = previous_mv_ptf / total_previous_mv_ptf
+        weight_bm = previous_mv_bm / total_previous_mv_bm
+        return_classif_ptf = delta_mv_classif_ptf / previous_mv_classif_ptf
+        return_classif_bm = delta_mv_classif_bm / previous_mv_classif_bm
+        interaction = (weight_ptf - weight_bm) * (return_classif_ptf - return_classif_bm)
+    else:
+        interaction = 0
+
+    return interaction
+
+
+def brinson_hood_beebower(data_df, classification_criteria):
+    attribution_columns = ["Start Date",
+                           classification_criteria,
+                           "PreviousMv_portfolio",
+                           "DeltaMv_portfolio",
+                           "TotalPreviousMv_portfolio",
+                           "PreviousMv_benchmark",
+                           "DeltaMv_benchmark",
+                           "TotalPreviousMv_benchmark"
+                           ]
+
+    # Sum all values across the instruments
+    attribution_df = data_df[attribution_columns].groupby(["Start Date", classification_criteria]).sum()
+
+    # Compute allocation effect for each date
+    attribution_df["Allocation Effect"] = attribution_df.apply(
+        lambda row: allocation_computation(
+            row["DeltaMv_portfolio"],
+            row["PreviousMv_portfolio"],
+            row["TotalPreviousMv_portfolio"],
+            row["DeltaMv_benchmark"],
+            row["PreviousMv_benchmark"],
+            row["TotalPreviousMv_benchmark"],
+        ),
+        axis = 1)
+
+    attribution_df["Selection Effect"] = attribution_df.apply(
+        lambda row: selection_computation(
+            row["DeltaMv_portfolio"],
+            row["PreviousMv_portfolio"],
+            row["DeltaMv_benchmark"],
+            row["PreviousMv_benchmark"],
+            row["TotalPreviousMv_benchmark"],
+        ),
+        axis=1)
+
+    attribution_df["Interaction Effect"] = attribution_df.apply(
+        lambda row: interaction_computation(
+            row["DeltaMv_portfolio"],
+            row["PreviousMv_portfolio"],
+            row["TotalPreviousMv_portfolio"],
+            row["DeltaMv_benchmark"],
+            row["PreviousMv_benchmark"],
+            row["TotalPreviousMv_benchmark"],
+        ),
+        axis=1)
+
+    attribution_df = attribution_df.reset_index()
+    attribution_columns = ["Start Date",
+                           classification_criteria,
+                           "Allocation Effect",
+                           "Selection Effect",
+                           "Interaction Effect"
+                           ]
+    attribution_df = attribution_df[attribution_columns]
+
+    return attribution_df
+
+
+def brinson_hood_beebower_instrument(data_df, classification_criteria, classification_value):
+    instruments_columns = ["Start Date",
+                         classification_criteria,
+                         "Product description",
+                         "PreviousMv_portfolio",
+                         "DeltaMv_portfolio",
+                         "TotalPreviousMv_portfolio",
+                         "PreviousMv_benchmark",
+                         "DeltaMv_benchmark",
+                         "TotalPreviousMv_benchmark"
+                         ]
+
+    instruments_df = data_df[instruments_columns]
+
+    # Filter on the value of the classification
+    instruments_df = instruments_df.copy()
+    instruments_df = instruments_df[instruments_df[classification_criteria] == classification_value]
+
+    # Compute delta and previous MVs per date at classification level
+    instruments_df["ClassifPreviousMv_portfolio"] = instruments_df.groupby("Start Date")["PreviousMv_portfolio"].transform("sum")
+    instruments_df["ClassifDeltaMv_portfolio"] = instruments_df.groupby("Start Date")["DeltaMv_portfolio"].transform("sum")
+    instruments_df["ClassifPreviousMv_benchmark"] = instruments_df.groupby("Start Date")["PreviousMv_benchmark"].transform("sum")
+    instruments_df["ClassifDeltaMv_benchmark"] = instruments_df.groupby("Start Date")["DeltaMv_benchmark"].transform("sum")
+
+
+    instruments_df["Selection Effect"] = instruments_df.apply(
+        lambda row: selection_by_instrument(
+            row["ClassifDeltaMv_portfolio"],
+            row["ClassifPreviousMv_portfolio"],
+            row["DeltaMv_benchmark"],
+            row["PreviousMv_benchmark"],
+            row["TotalPreviousMv_benchmark"]
+        ),
+        axis=1)
+
+    instruments_df["Interaction Effect"] = instruments_df.apply(
+        lambda row: interaction_by_instrument(
+            row["PreviousMv_portfolio"],
+            row["TotalPreviousMv_portfolio"],
+            row["ClassifDeltaMv_portfolio"],
+            row["ClassifPreviousMv_portfolio"],
+            row["PreviousMv_benchmark"],
+            row["TotalPreviousMv_benchmark"],
+            row["ClassifDeltaMv_benchmark"],
+            row["ClassifPreviousMv_benchmark"]
+        ),
+        axis=1)
+
+    instruments_columns = ["Start Date", "Product description", "Selection Effect", "Interaction Effect"]
+    instruments_df = instruments_df[instruments_columns]
+
+    return instruments_df

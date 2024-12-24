@@ -125,25 +125,25 @@ def brinson_fachler_instrument(data_df, classification_criteria, classification_
                          "DeltaMv_benchmark"
                          ]
 
-    selection_df = data_df[selection_columns]
+    instruments_df = data_df[selection_columns]
 
     # Compute the total previous
-    selection_df = selection_df.copy()
-    # selection_df["TotalPreviousMv_portfolio"] = selection_df.groupby("Start Date")["PreviousMv_portfolio"].transform("sum")
+    instruments_df = instruments_df.copy()
+    # instruments_df["TotalPreviousMv_portfolio"] = instruments_df.groupby("Start Date")["PreviousMv_portfolio"].transform("sum")
 
     # Filter on the value of the classification
-    selection_df = selection_df[selection_df[classification_criteria] == classification_value]
+    instruments_df = instruments_df[instruments_df[classification_criteria] == classification_value]
 
 
     # Compute delta and previous MVs per date for the benchmark
-    selection_df["ClassifPreviousMv_benchmark"] = selection_df.groupby("Start Date")["PreviousMv_benchmark"].transform("sum")
-    selection_df["ClassifDeltaMv_benchmark"] = selection_df.groupby("Start Date")["DeltaMv_benchmark"].transform("sum")
+    instruments_df["ClassifPreviousMv_benchmark"] = instruments_df.groupby("Start Date")["PreviousMv_benchmark"].transform("sum")
+    instruments_df["ClassifDeltaMv_benchmark"] = instruments_df.groupby("Start Date")["DeltaMv_benchmark"].transform("sum")
 
     # # Calculate weights per date
     # attribution_df["Weight_portfolio"] = attribution_df["PreviousMv_portfolio"] / attribution_df["TotalPreviousMv_portfolio"]
     # attribution_df["Weight_benchmark"] = attribution_df["PreviousMv_benchmark"] / attribution_df["TotalPreviousMv_benchmark"]
 
-    selection_df["Selection Effect"] = selection_df.apply(
+    instruments_df["Selection Effect"] = instruments_df.apply(
         lambda row: selection_by_instrument(
             row["DeltaMv_portfolio"],
             row["PreviousMv_portfolio"],
@@ -154,6 +154,6 @@ def brinson_fachler_instrument(data_df, classification_criteria, classification_
         axis=1)
 
     selection_columns = ["Start Date", "Product description", "Selection Effect"]
-    selection_df = selection_df[selection_columns]
+    instruments_df = instruments_df[selection_columns]
 
-    return selection_df
+    return instruments_df
