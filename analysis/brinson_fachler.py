@@ -1,4 +1,4 @@
-def allocation_computation(delta_mv_ptf,
+def compute_allocation(delta_mv_ptf,
                            previous_mv_ptf,
                            total_previous_mv_ptf,
                            delta_mv_bm,
@@ -20,7 +20,7 @@ def allocation_computation(delta_mv_ptf,
     return allocation_effect
 
 
-def selection_computation(delta_mv_ptf,
+def compute_selection(delta_mv_ptf,
                           previous_mv_ptf,
                           total_previous_mv_ptf,
                           delta_mv_bm,
@@ -38,7 +38,7 @@ def selection_computation(delta_mv_ptf,
     return selection_effect
 
 
-def selection_by_instrument(delta_mv_ptf,
+def compute_selection_by_instrument(delta_mv_ptf,
                             previous_mv_ptf,
                             total_previous_mv_ptf,
                             delta_mv_classif_benchmark,
@@ -56,33 +56,21 @@ def selection_by_instrument(delta_mv_ptf,
 
 
 def brinson_fachler(data_df, classification_criteria):
-    attribution_columns = ["Start Date",
-                           classification_criteria,
-                           "PreviousMv_portfolio",
-                           "DeltaMv_portfolio",
-                           "TotalPreviousMv_portfolio",
-                           "PreviousMv_benchmark",
-                           "DeltaMv_benchmark",
-                           "TotalPreviousMv_benchmark",
-                           "TotalReturn_benchmark"
-                           ]
-
     # Sum all values across the instruments
-    attribution_df = data_df[attribution_columns].groupby(["Start Date", classification_criteria]).sum()
-
-    # # Compute total MVs and benchmark total return per date
-    # attribution_df["TotalPreviousMv_portfolio"] = attribution_df.groupby("Start Date")["PreviousMv_portfolio"].transform("sum")
-    # attribution_df["TotalPreviousMv_benchmark"] = attribution_df.groupby("Start Date")["PreviousMv_benchmark"].transform("sum")
-    # attribution_df["TotalDeltaMv_benchmark"] = attribution_df.groupby("Start Date")["DeltaMv_benchmark"].transform("sum")
-    # attribution_df["TotalReturn_benchmark"] = attribution_df["TotalDeltaMv_benchmark"] / attribution_df["TotalPreviousMv_benchmark"]
-
-    # # Calculate weights per date
-    # attribution_df["Weight_portfolio"] = attribution_df["PreviousMv_portfolio"] / attribution_df["TotalPreviousMv_portfolio"]
-    # attribution_df["Weight_benchmark"] = attribution_df["PreviousMv_benchmark"] / attribution_df["TotalPreviousMv_benchmark"]
+    attribution_df = data_df.groupby(["Start Date", classification_criteria]).agg({
+        "DeltaMv_portfolio": "sum",
+        "PreviousMv_portfolio": "sum",
+        "DeltaMv_benchmark": "sum",
+        "PreviousMv_benchmark": "sum",
+        "TotalPreviousMv_portfolio": "first",
+        "TotalReturn_portfolio": "first",
+        "TotalPreviousMv_benchmark": "first",
+        "TotalReturn_benchmark": "first"
+    }).reset_index()
 
     # Compute allocation effect for each date
     attribution_df["Allocation Effect"] = attribution_df.apply(
-        lambda row: allocation_computation(
+        lambda row: compute_allocation(
             row["DeltaMv_portfolio"],
             row["PreviousMv_portfolio"],
             row["TotalPreviousMv_portfolio"],
@@ -94,7 +82,7 @@ def brinson_fachler(data_df, classification_criteria):
         axis = 1)
 
     attribution_df["Selection Effect"] = attribution_df.apply(
-        lambda row: selection_computation(
+        lambda row: compute_selection(
             row["DeltaMv_portfolio"],
             row["PreviousMv_portfolio"],
             row["TotalPreviousMv_portfolio"],
@@ -107,7 +95,9 @@ def brinson_fachler(data_df, classification_criteria):
     attribution_columns = ["Start Date",
                            classification_criteria,
                            "Allocation Effect",
-                           "Selection Effect"
+                           "Selection Effect",
+                           "TotalReturn_portfolio",
+                           "TotalReturn_benchmark"
                            ]
     attribution_df = attribution_df[attribution_columns]
 
@@ -115,36 +105,29 @@ def brinson_fachler(data_df, classification_criteria):
 
 
 def brinson_fachler_instrument(data_df, classification_criteria, classification_value):
-    selection_columns = ["Start Date",
-                         classification_criteria,
-                         "Product description",
-                         "PreviousMv_portfolio",
-                         "DeltaMv_portfolio",
-                         "TotalPreviousMv_portfolio",
-                         "PreviousMv_benchmark",
-                         "DeltaMv_benchmark"
+    # Filter on the value of the classification
+    data_df = data_df[data_df[classification_criteria] == classification_value]
+
+    instruments_columns = ["Start Date",
+                           classification_criteria,
+                           "Product description",
+                           "PreviousMv_portfolio",
+                           "DeltaMv_portfolio",
+                           "TotalPreviousMv_portfolio",
+                           "PreviousMv_benchmark",
+                           "DeltaMv_benchmark",
+                           "TotalReturn_portfolio",
+                           "TotalReturn_benchmark"
                          ]
 
-    instruments_df = data_df[selection_columns]
-
-    # Compute the total previous
-    instruments_df = instruments_df.copy()
-    # instruments_df["TotalPreviousMv_portfolio"] = instruments_df.groupby("Start Date")["PreviousMv_portfolio"].transform("sum")
-
-    # Filter on the value of the classification
-    instruments_df = instruments_df[instruments_df[classification_criteria] == classification_value]
-
+    instruments_df = data_df[instruments_columns].copy()
 
     # Compute delta and previous MVs per date for the benchmark
     instruments_df["ClassifPreviousMv_benchmark"] = instruments_df.groupby("Start Date")["PreviousMv_benchmark"].transform("sum")
     instruments_df["ClassifDeltaMv_benchmark"] = instruments_df.groupby("Start Date")["DeltaMv_benchmark"].transform("sum")
 
-    # # Calculate weights per date
-    # attribution_df["Weight_portfolio"] = attribution_df["PreviousMv_portfolio"] / attribution_df["TotalPreviousMv_portfolio"]
-    # attribution_df["Weight_benchmark"] = attribution_df["PreviousMv_benchmark"] / attribution_df["TotalPreviousMv_benchmark"]
-
     instruments_df["Selection Effect"] = instruments_df.apply(
-        lambda row: selection_by_instrument(
+        lambda row: compute_selection_by_instrument(
             row["DeltaMv_portfolio"],
             row["PreviousMv_portfolio"],
             row["TotalPreviousMv_portfolio"],
@@ -153,7 +136,12 @@ def brinson_fachler_instrument(data_df, classification_criteria, classification_
         ),
         axis=1)
 
-    selection_columns = ["Start Date", "Product description", "Selection Effect"]
+    selection_columns = ["Start Date",
+                         "Product description",
+                         "Selection Effect",
+                         "TotalReturn_portfolio",
+                         "TotalReturn_benchmark"]
+
     instruments_df = instruments_df[selection_columns]
 
     return instruments_df
