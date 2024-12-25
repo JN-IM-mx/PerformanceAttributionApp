@@ -6,7 +6,7 @@ def prepare_data(ptf_list, bm, ptf_df, bm_df, classifications_df):
     ptf_df = ptf_df.drop(["Portfolio", "ProductTaxonomy", "End Date"], axis=1)
     ptf_df = ptf_df.groupby(["Start Date", "Instrument"]).sum().reset_index()
 
-    # Filter bm_df on portfolios in bm_list and remove unneeded columns
+    # Filter bm_df on bm benchmark and remove unneeded columns
     bm_df = bm_df[bm_df["Benchmark"] == bm]
     bm_df = bm_df.drop(["Benchmark", "ProductTaxonomy", "End Date"], axis=1)
 
