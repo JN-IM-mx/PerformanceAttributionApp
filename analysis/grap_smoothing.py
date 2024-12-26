@@ -27,8 +27,6 @@ def grap_smoothing(df, start_date, breakdown):
     # Identify all the columns to multiply by the GRAP factor
     cols_to_multiply = [col for col in df.columns if col not in excluded_cols]
 
-    print(cols_to_multiply)
-
     # Multiply those columns by the "GRAP Factor" column row-by-row
     df[cols_to_multiply] = df[cols_to_multiply].mul(df["GRAP factor"], axis=0)
 

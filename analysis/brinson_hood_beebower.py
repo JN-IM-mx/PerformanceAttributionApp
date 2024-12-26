@@ -38,12 +38,12 @@ def compute_selection(delta_mv_ptf,
 
 
 def compute_interaction(delta_mv_ptf,
-                            previous_mv_ptf,
-                            total_previous_mv_ptf,
-                            delta_mv_bm,
-                            previous_mv_bm,
-                            total_previous_mv_bm
-                            ):
+                        previous_mv_ptf,
+                        total_previous_mv_ptf,
+                        delta_mv_bm,
+                        previous_mv_bm,
+                        total_previous_mv_bm
+                        ):
     if previous_mv_ptf != 0 and previous_mv_bm != 0:
         # Standard Brinson-Hood-Beebower formula
         weight_ptf = previous_mv_ptf / total_previous_mv_ptf
@@ -108,7 +108,7 @@ def brinson_hood_beebower(data_df, classification_criteria):
     }).reset_index()
 
     # Compute allocation effect for each date
-    attribution_df["Allocation Effect"] = attribution_df.apply(
+    attribution_df["Allocation"] = attribution_df.apply(
         lambda row: compute_allocation(
             row["DeltaMv_portfolio"],
             row["PreviousMv_portfolio"],
@@ -119,7 +119,7 @@ def brinson_hood_beebower(data_df, classification_criteria):
         ),
         axis = 1)
 
-    attribution_df["Selection Effect"] = attribution_df.apply(
+    attribution_df["Selection"] = attribution_df.apply(
         lambda row: compute_selection(
             row["DeltaMv_portfolio"],
             row["PreviousMv_portfolio"],
@@ -129,22 +129,26 @@ def brinson_hood_beebower(data_df, classification_criteria):
         ),
         axis=1)
 
-    attribution_df["Interaction Effect"] = attribution_df.apply(
-        lambda row: compute_selection(
+    attribution_df["Interaction"] = attribution_df.apply(
+        lambda row: compute_interaction(
             row["DeltaMv_portfolio"],
             row["PreviousMv_portfolio"],
+            row["TotalPreviousMv_benchmark"],
             row["DeltaMv_benchmark"],
             row["PreviousMv_benchmark"],
-            row["TotalPreviousMv_benchmark"],
+            row["TotalPreviousMv_benchmark"]
         ),
         axis=1)
+
+    attribution_df["Excess return"] = attribution_df["Allocation"] + attribution_df["Selection"] + attribution_df["Interaction"]
 
     attribution_df = attribution_df.reset_index()
     attribution_columns = ["Start Date",
                            classification_criteria,
-                           "Allocation Effect",
-                           "Selection Effect",
-                           "Interaction Effect",
+                           "Excess return",
+                           "Allocation",
+                           "Selection",
+                           "Interaction",
                            "TotalReturn_portfolio",
                            "TotalReturn_benchmark"
                            ]
@@ -200,6 +204,7 @@ def brinson_hood_beebower_instrument(data_df, classification_criteria, classific
             row["ClassifPreviousMv_benchmark"]
         ),
         axis=1)
+
 
     instruments_columns = ["Start Date",
                            "Product description",

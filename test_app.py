@@ -6,7 +6,7 @@ from analysis.brinson_hood_beebower import brinson_hood_beebower, brinson_hood_b
 from analysis.grap_smoothing import grap_smoothing
 
 # File paths
-classifications_file = "./data/equities_classifications.csv"
+classifications_file = "./data/classifications.csv"
 portfolios_file = "./data/portfolios.csv"
 benchmarks_file = "./data/benchmarks.csv"
 

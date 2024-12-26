@@ -19,11 +19,11 @@ st.set_page_config(
 st.markdown("### :bar_chart: Performance attribution")
 
 # Use TPK data or custom data
-data_source_toggle = st.segmented_control("",["TPK data", "Custom data"], default="TPK data")
+data_source_toggle = st.segmented_control("",["Use TPK data", "Upload csv files"], default="Use TPK data")
 
 # Load csv data
-classifications_file = "./data/equities_classifications.csv"
-if data_source_toggle == "TPK data":
+classifications_file = "./data/classifications.csv"
+if data_source_toggle == "Use TPK data":
     portfolios_file = "./data/portfolios.csv"
     benchmarks_file = "./data/benchmarks.csv"
 else:
@@ -52,7 +52,7 @@ if portfolios_file is not None and benchmarks_file is not None:
     benchmarks = np.sort(benchmarks)
 
 
-    if data_source_toggle == "TPK data":
+    if data_source_toggle == "Use TPK data":
         default_portfolio = "EUR EQ LARGE CP"
     else:
         default_portfolio = portfolios[0]
@@ -82,24 +82,6 @@ if portfolios_file is not None and benchmarks_file is not None:
 
         grap_attribution_df = grap_smoothing(attribution_df, reference_date, classification_criteria)
 
-        # # Format the DataFrame for display
-        # df_style = "{:,." + str(decimal_places) + "%}"
-        # styled_grap_result_df = grap_attribution_df.style.apply(highlight_total_row, axis=1)
-        #
-        # if model == "Brinson-Fachler":
-        #     styled_grap_result_df = styled_grap_result_df.format({
-        #         "Allocation": df_style.format,
-        #         "Selection": df_style.format,
-        #         "Excess return": df_style.format
-        #     })
-        # else:
-        #     styled_grap_result_df = styled_grap_result_df.format({
-        #         "Allocation": df_style.format,
-        #         "Selection": df_style.format,
-        #         "Interaction": df_style.format,
-        #         "Excess return": df_style.format
-        #     })
-
         # Display main analysis results
         analysis_master_row[1].markdown(f"**{model} Attribution**:")
         analysis_master_row[1].dataframe(
@@ -123,11 +105,11 @@ if portfolios_file is not None and benchmarks_file is not None:
 
         grap_instruments_df = grap_smoothing(instruments_df, reference_date, "Product description")
 
-        # Display detailed instrument-level results
-        # styled_grap_instrument_result_df = grap_instrument_result.style.apply(highlight_total_row, axis=1)
-        # styled_grap_instrument_result_df = styled_grap_instrument_result_df.format({"Selection": df_style.format})
-        analysis_detail_row[1].markdown("**Instrument Selection Details**:",
-                                        help="Detailed selection analysis by instrument")
+        if model == "Brinson-Fachler":
+            analysis_detail_row[1].markdown("**Instrument Selection Details**:")
+        else:
+            analysis_detail_row[1].markdown("**Instrument Selection and Interaction Details**:")
+
         analysis_detail_row[1].dataframe(
             style_dataframe(grap_instruments_df, decimal_places),
             hide_index=True,

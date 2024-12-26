@@ -69,7 +69,7 @@ def brinson_fachler(data_df, classification_criteria):
     }).reset_index()
 
     # Compute allocation effect for each date
-    attribution_df["Allocation Effect"] = attribution_df.apply(
+    attribution_df["Allocation"] = attribution_df.apply(
         lambda row: compute_allocation(
             row["DeltaMv_portfolio"],
             row["PreviousMv_portfolio"],
@@ -81,7 +81,7 @@ def brinson_fachler(data_df, classification_criteria):
         ),
         axis = 1)
 
-    attribution_df["Selection Effect"] = attribution_df.apply(
+    attribution_df["Selection"] = attribution_df.apply(
         lambda row: compute_selection(
             row["DeltaMv_portfolio"],
             row["PreviousMv_portfolio"],
@@ -91,11 +91,14 @@ def brinson_fachler(data_df, classification_criteria):
         ),
         axis=1)
 
+    attribution_df["Excess return"] = attribution_df["Allocation"] + attribution_df["Selection"]
+
     attribution_df = attribution_df.reset_index()
     attribution_columns = ["Start Date",
                            classification_criteria,
-                           "Allocation Effect",
-                           "Selection Effect",
+                           "Excess return",
+                           "Allocation",
+                           "Selection",
                            "TotalReturn_portfolio",
                            "TotalReturn_benchmark"
                            ]
