@@ -1,6 +1,7 @@
 import streamlit as st
 import datetime
 import pandas as pd
+import numpy as np
 from analysis.data_preparation import prepare_data
 from analysis.brinson_fachler import brinson_fachler, brinson_fachler_instrument
 from analysis.brinson_hood_beebower import brinson_hood_beebower, brinson_hood_beebower_instrument
@@ -46,74 +47,82 @@ if portfolios_file is not None and benchmarks_file is not None:
 
     # Retrieve the list of portfolios and benchmarks from the dataframes
     portfolios = portfolio_df["Portfolio"].unique()
-    benchmark = benchmark_df["Benchmark"].unique()
+    portfolios = np.sort(portfolios)
+    benchmarks = benchmark_df["Benchmark"].unique()
+    benchmarks = np.sort(benchmarks)
+
+
+    if data_source_toggle == "TPK data":
+        default_portfolio = "EUR EQ LARGE CP"
+    else:
+        default_portfolio = portfolios[0]
 
     # Allow the user to select the list of portfolios and benchmarks to perform the analysis on
-    selected_portfolios = settings_row[3].multiselect("Portfolios", portfolios, default=portfolios[0])
-    selected_benchmark = settings_row[4].selectbox("Benchmark", benchmark)
-    # selected_benchmark = "EURO STOXX 50"
+    selected_portfolios = settings_row[3].multiselect("Portfolios", portfolios, default_portfolio)
+    selected_benchmark = settings_row[4].selectbox("Benchmark", benchmarks,index=0)
 
     # Create 2 rows and 2 columns, left column is for allocation criteria/instrument, right for analysis results
     analysis_master_row = st.columns([0.25, 0.75])
     analysis_detail_row = st.columns([0.25, 0.75])
 
-    # Radio button in the left pane, allowing to select a classification criteria
-    classification_criteria = analysis_master_row[0].radio(
-        "Allocation criteria",
-        ["GICS sector", "GICS industry group", "GICS industry", "GICS sub-industry", "Region", "Country"],
-    )
+    if len(selected_portfolios) > 0:
+        # Radio button in the left pane, allowing to select a classification criteria
+        classification_criteria = analysis_master_row[0].radio(
+            "Allocation criteria",
+            ["GICS sector", "GICS industry group", "GICS industry", "GICS sub-industry", "Region", "Country"],
+        )
 
-    # Prepare the data
-    data_df = prepare_data(portfolios, selected_benchmark, portfolio_df, benchmark_df, classifications_df)
+        # Prepare the data
+        data_df = prepare_data(selected_portfolios, selected_benchmark, portfolio_df, benchmark_df, classifications_df)
 
-    if model == "Brinson-Fachler":
-        attribution_df = brinson_fachler(data_df, classification_criteria)
-    else:
-        attribution_df = brinson_hood_beebower(data_df, classification_criteria)
+        if model == "Brinson-Fachler":
+            attribution_df = brinson_fachler(data_df, classification_criteria)
+        else:
+            attribution_df = brinson_hood_beebower(data_df, classification_criteria)
 
-    grap_attribution_df = grap_smoothing(attribution_df, reference_date, classification_criteria)
+        grap_attribution_df = grap_smoothing(attribution_df, reference_date, classification_criteria)
 
-    # # Format the DataFrame for display
-    # df_style = "{:,." + str(decimal_places) + "%}"
-    # styled_grap_result_df = grap_attribution_df.style.apply(highlight_total_row, axis=1)
-    #
-    # if model == "Brinson-Fachler":
-    #     styled_grap_result_df = styled_grap_result_df.format({
-    #         "Allocation": df_style.format,
-    #         "Selection": df_style.format,
-    #         "Excess return": df_style.format
-    #     })
-    # else:
-    #     styled_grap_result_df = styled_grap_result_df.format({
-    #         "Allocation": df_style.format,
-    #         "Selection": df_style.format,
-    #         "Interaction": df_style.format,
-    #         "Excess return": df_style.format
-    #     })
+        # # Format the DataFrame for display
+        # df_style = "{:,." + str(decimal_places) + "%}"
+        # styled_grap_result_df = grap_attribution_df.style.apply(highlight_total_row, axis=1)
+        #
+        # if model == "Brinson-Fachler":
+        #     styled_grap_result_df = styled_grap_result_df.format({
+        #         "Allocation": df_style.format,
+        #         "Selection": df_style.format,
+        #         "Excess return": df_style.format
+        #     })
+        # else:
+        #     styled_grap_result_df = styled_grap_result_df.format({
+        #         "Allocation": df_style.format,
+        #         "Selection": df_style.format,
+        #         "Interaction": df_style.format,
+        #         "Excess return": df_style.format
+        #     })
 
-    # Display main analysis results
-    analysis_master_row[1].markdown(f"**{model} Attribution**:")
-    analysis_master_row[1].dataframe(grap_attribution_df, hide_index=True, width=800,
-                                     height=(len(grap_attribution_df.index) + 1) * 35 + 3)
+        # Display main analysis results
+        analysis_master_row[1].markdown(f"**{model} Attribution**:")
+        analysis_master_row[1].dataframe(grap_attribution_df, hide_index=True, width=800,
+                                         height=(len(grap_attribution_df.index) + 1) * 35 + 3)
 
-    # Allow user to drill down by classification
-    classification_values = [val for val in grap_attribution_df[classification_criteria].to_list() if
-                             val not in ["Cash", "Total"]]
-    classification_value = analysis_detail_row[0].radio(f"Select a {classification_criteria}:",
-                                                        classification_values)
+        # Allow user to drill down by classification
+        classification_values = [val for val in grap_attribution_df[classification_criteria].to_list() if
+                                 val not in ["Cash", "Total"]]
+        classification_value = analysis_detail_row[0].radio(f"Select a {classification_criteria}:",
+                                                            classification_values)
 
-    # Drill-down analysis for specific classification
-    if model == "Brinson-Fachler":
-        instruments_df = brinson_fachler_instrument(data_df, classification_criteria, classification_value)
-    else:
-        instruments_df = brinson_hood_beebower_instrument(data_df, classification_criteria, classification_value)
+        # Drill-down analysis for specific classification
+        if model == "Brinson-Fachler":
+            instruments_df = brinson_fachler_instrument(data_df, classification_criteria, classification_value)
+        else:
+            instruments_df = brinson_hood_beebower_instrument(data_df, classification_criteria, classification_value)
 
-    grap_instrument_df = grap_smoothing(instruments_df, reference_date, "Product description")
+        grap_instrument_df = grap_smoothing(instruments_df, reference_date, "Product description")
 
-    # Display detailed instrument-level results
-    # styled_grap_instrument_result_df = grap_instrument_result.style.apply(highlight_total_row, axis=1)
-    # styled_grap_instrument_result_df = styled_grap_instrument_result_df.format({"Selection": df_style.format})
-    analysis_detail_row[1].markdown("**Instrument Selection Details**:", help="Detailed selection analysis by "
-                                                                              "instrument")
-    analysis_detail_row[1].dataframe(grap_instrument_df, hide_index=True, width=700,
-                                     height=(len(grap_instrument_df.index) + 1) * 35 + 3)
+        # Display detailed instrument-level results
+        # styled_grap_instrument_result_df = grap_instrument_result.style.apply(highlight_total_row, axis=1)
+        # styled_grap_instrument_result_df = styled_grap_instrument_result_df.format({"Selection": df_style.format})
+        analysis_detail_row[1].markdown("**Instrument Selection Details**:", help="Detailed selection analysis by "
+                                                                                  "instrument")
+        analysis_detail_row[1].dataframe(grap_instrument_df, hide_index=True, width=700,
+                                         height=(len(grap_instrument_df.index) + 1) * 35 + 3)
