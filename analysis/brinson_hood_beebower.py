@@ -1,10 +1,10 @@
 def compute_allocation(delta_mv_ptf,
-                           previous_mv_ptf,
-                           total_previous_mv_ptf,
-                           delta_mv_bm,
-                           previous_mv_bm,
-                           total_previous_mv_bm,
-                           ):
+                       previous_mv_ptf,
+                       total_previous_mv_ptf,
+                       delta_mv_bm,
+                       previous_mv_bm,
+                       total_previous_mv_bm,
+                       ):
 
     weight_ptf = previous_mv_ptf / total_previous_mv_ptf
 
@@ -133,7 +133,7 @@ def brinson_hood_beebower(data_df, classification_criteria):
         lambda row: compute_interaction(
             row["DeltaMv_portfolio"],
             row["PreviousMv_portfolio"],
-            row["TotalPreviousMv_benchmark"],
+            row["TotalPreviousMv_portfolio"],
             row["DeltaMv_benchmark"],
             row["PreviousMv_benchmark"],
             row["TotalPreviousMv_benchmark"]
