@@ -6,7 +6,7 @@ from analysis.data_preparation import prepare_data
 from analysis.brinson_fachler import brinson_fachler, brinson_fachler_instrument
 from analysis.brinson_hood_beebower import brinson_hood_beebower, brinson_hood_beebower_instrument
 from analysis.grap_smoothing import grap_smoothing
-from utils.styling import highlight_total_row
+from utils.styling import style_dataframe, dataframe_height
 
 # Streamlit page configuration
 st.set_page_config(
@@ -102,8 +102,12 @@ if portfolios_file is not None and benchmarks_file is not None:
 
         # Display main analysis results
         analysis_master_row[1].markdown(f"**{model} Attribution**:")
-        analysis_master_row[1].dataframe(grap_attribution_df, hide_index=True, width=800,
-                                         height=(len(grap_attribution_df.index) + 1) * 35 + 3)
+        analysis_master_row[1].dataframe(
+            style_dataframe(grap_attribution_df, decimal_places),
+            hide_index=True,
+            width=800,
+            height=dataframe_height(grap_attribution_df)
+        )
 
         # Allow user to drill down by classification
         classification_values = [val for val in grap_attribution_df[classification_criteria].to_list() if
@@ -117,12 +121,16 @@ if portfolios_file is not None and benchmarks_file is not None:
         else:
             instruments_df = brinson_hood_beebower_instrument(data_df, classification_criteria, classification_value)
 
-        grap_instrument_df = grap_smoothing(instruments_df, reference_date, "Product description")
+        grap_instruments_df = grap_smoothing(instruments_df, reference_date, "Product description")
 
         # Display detailed instrument-level results
         # styled_grap_instrument_result_df = grap_instrument_result.style.apply(highlight_total_row, axis=1)
         # styled_grap_instrument_result_df = styled_grap_instrument_result_df.format({"Selection": df_style.format})
-        analysis_detail_row[1].markdown("**Instrument Selection Details**:", help="Detailed selection analysis by "
-                                                                                  "instrument")
-        analysis_detail_row[1].dataframe(grap_instrument_df, hide_index=True, width=700,
-                                         height=(len(grap_instrument_df.index) + 1) * 35 + 3)
+        analysis_detail_row[1].markdown("**Instrument Selection Details**:",
+                                        help="Detailed selection analysis by instrument")
+        analysis_detail_row[1].dataframe(
+            style_dataframe(grap_instruments_df, decimal_places),
+            hide_index=True,
+            width=700,
+            height=dataframe_height(grap_instruments_df)
+        )
