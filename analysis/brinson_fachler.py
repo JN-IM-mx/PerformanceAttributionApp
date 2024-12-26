@@ -129,7 +129,7 @@ def brinson_fachler_instrument(data_df, classification_criteria, classification_
     instruments_df["ClassifPreviousMv_benchmark"] = instruments_df.groupby("Start Date")["PreviousMv_benchmark"].transform("sum")
     instruments_df["ClassifDeltaMv_benchmark"] = instruments_df.groupby("Start Date")["DeltaMv_benchmark"].transform("sum")
 
-    instruments_df["Selection Effect"] = instruments_df.apply(
+    instruments_df["Selection"] = instruments_df.apply(
         lambda row: compute_selection_by_instrument(
             row["DeltaMv_portfolio"],
             row["PreviousMv_portfolio"],
@@ -141,7 +141,7 @@ def brinson_fachler_instrument(data_df, classification_criteria, classification_
 
     selection_columns = ["Start Date",
                          "Product description",
-                         "Selection Effect",
+                         "Selection",
                          "TotalReturn_portfolio",
                          "TotalReturn_benchmark"]
 

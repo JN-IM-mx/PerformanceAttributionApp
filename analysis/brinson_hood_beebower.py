@@ -182,7 +182,7 @@ def brinson_hood_beebower_instrument(data_df, classification_criteria, classific
     instruments_df["ClassifDeltaMv_benchmark"] = instruments_df.groupby("Start Date")["DeltaMv_benchmark"].transform("sum")
 
 
-    instruments_df["Selection Effect"] = instruments_df.apply(
+    instruments_df["Selection"] = instruments_df.apply(
         lambda row: compute_selection_by_instrument(
             row["ClassifDeltaMv_portfolio"],
             row["ClassifPreviousMv_portfolio"],
@@ -192,7 +192,7 @@ def brinson_hood_beebower_instrument(data_df, classification_criteria, classific
         ),
         axis=1)
 
-    instruments_df["Interaction Effect"] = instruments_df.apply(
+    instruments_df["Interaction"] = instruments_df.apply(
         lambda row: compute_interaction_by_instrument(
             row["PreviousMv_portfolio"],
             row["TotalPreviousMv_portfolio"],
@@ -208,8 +208,8 @@ def brinson_hood_beebower_instrument(data_df, classification_criteria, classific
 
     instruments_columns = ["Start Date",
                            "Product description",
-                           "Selection Effect",
-                           "Interaction Effect",
+                           "Selection",
+                           "Interaction",
                            "TotalReturn_portfolio",
                            "TotalReturn_benchmark"]
     instruments_df = instruments_df[instruments_columns]
