@@ -23,8 +23,12 @@ def prepare_data(ptf_list, bm, ptf_df, bm_df, classifications_df):
     merged_df["TotalReturn_portfolio"] = merged_df["TotalDeltaMv_portfolio"] / merged_df["TotalPreviousMv_portfolio"]
     merged_df["TotalReturn_benchmark"] = merged_df["TotalDeltaMv_benchmark"] / merged_df["TotalPreviousMv_benchmark"]
 
-    merged_df = pd.merge(merged_df, classifications_df, left_on="Instrument", right_on="Product", how="left").fillna(
-        "Cash")
+    # Put "Cash" as classification for all instruments where Product type = Cash
+    columns_to_update = [col for col in classifications_df.columns if col not in ["Product", "Product description", "Product type"]]
+
+    classifications_df.loc[classifications_df["Product type"] == "Cash", columns_to_update] = "Cash"
+
+    merged_df = pd.merge(merged_df, classifications_df, left_on="Instrument", right_on="Product", how="left")
 
     return merged_df
 

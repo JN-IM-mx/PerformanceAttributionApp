@@ -93,7 +93,7 @@ if portfolios_file is not None and benchmarks_file is not None:
 
         # Allow user to drill down by classification
         classification_values = [val for val in grap_attribution_df[classification_criteria].to_list() if
-                                 val not in ["Cash", "Total"]]
+                                 val not in ["Total"]]
         classification_value = analysis_detail_row[0].radio(f"Select a {classification_criteria}:",
                                                             classification_values)
 
