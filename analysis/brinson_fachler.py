@@ -1,11 +1,11 @@
 def compute_allocation(delta_mv_ptf,
-                           previous_mv_ptf,
-                           total_previous_mv_ptf,
-                           delta_mv_bm,
-                           previous_mv_bm,
-                           total_previous_mv_bm,
-                           total_return_bm
-                           ):
+                       previous_mv_ptf,
+                       total_previous_mv_ptf,
+                       delta_mv_bm,
+                       previous_mv_bm,
+                       total_previous_mv_bm,
+                       total_return_bm
+                       ):
 
     weight_ptf = previous_mv_ptf / total_previous_mv_ptf
 

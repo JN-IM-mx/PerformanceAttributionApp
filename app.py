@@ -5,6 +5,7 @@ import numpy as np
 from analysis.data_preparation import prepare_data
 from analysis.brinson_fachler import brinson_fachler, brinson_fachler_instrument
 from analysis.brinson_hood_beebower import brinson_hood_beebower, brinson_hood_beebower_instrument
+from analysis.effects_analysis import effects_analysis, effects_analysis_instrument
 from analysis.grap_smoothing import grap_smoothing
 from utils.styling import style_dataframe, dataframe_height
 
@@ -36,7 +37,7 @@ if portfolios_file is not None and benchmarks_file is not None:
 
     # User settings
     settings_row = st.columns(5)
-    model = settings_row[0].selectbox("Model", ["Brinson-Fachler", "Brinson-Hood-Beebower"])
+    model = settings_row[0].selectbox("Model", ["Brinson-Fachler", "Brinson-Hood-Beebower", "Fixed Income attribution"])
     reference_date = settings_row[1].date_input("Start date", datetime.date(2019, 12, 31))
     decimal_places = settings_row[2].selectbox("Decimal places", (2, 4, 8, 12))
 
@@ -67,20 +68,29 @@ if portfolios_file is not None and benchmarks_file is not None:
 
     if len(selected_portfolios) > 0:
         # Radio button in the left pane, allowing to select a classification criteria
-        classification_criteria = analysis_master_row[0].radio(
-            "Allocation criteria",
-            ["GICS sector", "GICS industry group", "GICS industry", "GICS sub-industry", "Region", "Country"],
-        )
+        if model == "Fixed Income attribution":
+            classification_criteria = analysis_master_row[0].radio(
+                "Allocation criteria",
+                ["S&P rating", "Fitch rating", "Moody's rating", "GICS sector", "GICS industry group", "GICS industry", "GICS sub-industry", "Region", "Country"],
+            )
+        else:
+            classification_criteria = analysis_master_row[0].radio(
+                "Allocation criteria",
+                ["GICS sector", "GICS industry group", "GICS industry", "GICS sub-industry", "Region", "Country"],
+            )
+
 
         # Prepare the data
         data_df = prepare_data(selected_portfolios, selected_benchmark, portfolio_df, benchmark_df, classifications_df)
 
         if model == "Brinson-Fachler":
             attribution_df = brinson_fachler(data_df, classification_criteria)
-        else:
+        elif model == "Brinson-Hood-Beebower":
             attribution_df = brinson_hood_beebower(data_df, classification_criteria)
+        else:
+            attribution_df = effects_analysis(data_df, classification_criteria)
 
-        grap_attribution_df = grap_smoothing(attribution_df, reference_date, classification_criteria)
+        grap_attribution_df = grap_smoothing(attribution_df, reference_date, [classification_criteria])
 
         # Display main analysis results
         analysis_master_row[1].markdown(f"**{model} Attribution**:")
@@ -100,15 +110,19 @@ if portfolios_file is not None and benchmarks_file is not None:
         # Drill-down analysis for specific classification
         if model == "Brinson-Fachler":
             instruments_df = brinson_fachler_instrument(data_df, classification_criteria, classification_value)
-        else:
+        elif model == "Brinson-Hood-Beebower":
             instruments_df = brinson_hood_beebower_instrument(data_df, classification_criteria, classification_value)
+        else:
+            instruments_df = effects_analysis_instrument(data_df, classification_criteria, classification_value)
 
-        grap_instruments_df = grap_smoothing(instruments_df, reference_date, "Product description")
+        grap_instruments_df = grap_smoothing(instruments_df, reference_date, ["Product description"])
 
         if model == "Brinson-Fachler":
             analysis_detail_row[1].markdown("**Instrument Selection Details**:")
-        else:
+        elif model == "Brinson-Hood-Beebower":
             analysis_detail_row[1].markdown("**Instrument Selection and Interaction Details**:")
+        else:
+            analysis_detail_row[1].markdown("**Instrument effects analysis**:")
 
         analysis_detail_row[1].dataframe(
             style_dataframe(grap_instruments_df, decimal_places),

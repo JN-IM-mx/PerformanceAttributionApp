@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def grap_smoothing(df, start_date, breakdown):
+def grap_smoothing(df, start_date, breakdowns_list):
     start_date = pd.to_datetime(start_date)
     df["Start Date"] = pd.to_datetime(df["Start Date"])
     df = df[df["Start Date"] >= start_date]
@@ -22,7 +22,7 @@ def grap_smoothing(df, start_date, breakdown):
 
     # GRAP factor application
     # Define the columns to exclude from the GRAP factor multiplication
-    excluded_cols = ["Start Date", breakdown, "GRAP factor"]
+    excluded_cols = ["Start Date", "GRAP factor"] + breakdowns_list
 
     # Identify all the columns to multiply by the GRAP factor
     cols_to_multiply = [col for col in df.columns if col not in excluded_cols]
@@ -30,8 +30,8 @@ def grap_smoothing(df, start_date, breakdown):
     # Multiply those columns by the "GRAP Factor" column row-by-row
     df[cols_to_multiply] = df[cols_to_multiply].mul(df["GRAP factor"], axis=0)
 
-    grap_result_df = df.groupby(breakdown)[cols_to_multiply].sum().reset_index()
+    grap_result_df = df.groupby(breakdowns_list)[cols_to_multiply].sum().reset_index()
     grap_result_df.loc['Total'] = grap_result_df.sum()
-    grap_result_df.loc[grap_result_df.index[-1], breakdown] = 'Total'
+    grap_result_df.loc[grap_result_df.index[-1], breakdowns_list] = 'Total'
 
     return grap_result_df
