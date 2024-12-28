@@ -24,9 +24,13 @@ def prepare_data(ptf_list, bm, ptf_df, bm_df, classifications_df):
     merged_df["TotalReturn_benchmark"] = merged_df["TotalDeltaMv_benchmark"] / merged_df["TotalPreviousMv_benchmark"]
 
     # Put "Cash" as classification for all instruments where Product type = Cash
-    columns_to_update = [col for col in classifications_df.columns if col not in ["Product", "Product description", "Product type"]]
+    columns_to_update = [col for col in classifications_df.columns if col not in ["Product", "Product description", "Product type", "Issuer"]]
 
     classifications_df.loc[classifications_df["Product type"] == "Cash", columns_to_update] = "Cash"
+    classifications_df.loc[classifications_df["Product type"] == "Derivative", columns_to_update] = "Derivatives"
+    classifications_df.loc[classifications_df["Issuer"] == "MUREX INVESTMENT MANAGEMENT (LU) SA", columns_to_update] = "Fees"
+    classifications_df.loc[classifications_df["Product"] == "MUREX SOLUTIONS EUR BALANCED A", columns_to_update] = "Fees"
+    classifications_df.loc[classifications_df["Product"] == "LIQUID EURO CORPORATES B", columns_to_update] = "Fees"
 
     merged_df = pd.merge(merged_df, classifications_df, left_on="Instrument", right_on="Product", how="left")
 

@@ -103,7 +103,7 @@ if portfolios_file is not None and benchmarks_file is not None:
         analysis_master_row[1].dataframe(
             style_dataframe(grap_attribution_df, decimal_places),
             hide_index=True,
-            width=800,
+            width=1000,
             height=dataframe_height(grap_attribution_df)
         )
 
@@ -133,6 +133,6 @@ if portfolios_file is not None and benchmarks_file is not None:
         analysis_detail_row[1].dataframe(
             style_dataframe(grap_instruments_df, decimal_places),
             hide_index=True,
-            width=700,
+            width=1000,
             height=dataframe_height(grap_instruments_df)
         )
