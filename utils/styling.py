@@ -30,11 +30,27 @@ def style_dataframe(df, decimals):
         else:
             return [""] * len(row)
 
+    # Function to apply red font for negative numeric values
+    def highlight_negative(val):
+        try:
+            # Attempt to convert to float and check if negative
+            val_float = float(val)
+            color = "red" if val_float < 0 else "black"
+        except ValueError:
+            # Handle non-numeric values
+            color = "black"
+        return f"color: {color}"
+
+
+    # Apply the styling function
+    styled_df = df.style.applymap(highlight_negative)
+
     # Combine all styling in one chain
     styled = (
         df.style
           .format(format_dict)                   # Apply number formatting
           .apply(highlight_last_row, axis=1)     # Highlight last row
+          .applymap(highlight_negative)
     )
     return styled
 
