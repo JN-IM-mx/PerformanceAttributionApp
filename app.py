@@ -20,7 +20,7 @@ st.set_page_config(
 st.markdown("### :bar_chart: Performance attribution")
 
 # Use TPK data or custom data
-data_source_toggle = st.segmented_control("",["Use TPK data", "Upload csv files"], default="Use TPK data")
+data_source_toggle = st.segmented_control("Performance data source", ["Use TPK data", "Upload csv files"], default="Use TPK data", label_visibility="hidden")
 
 # Load csv data
 classifications_file = "./data/classifications.csv"

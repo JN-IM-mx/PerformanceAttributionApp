@@ -31,7 +31,16 @@ def grap_smoothing(df, start_date, breakdowns_list):
     df[cols_to_multiply] = df[cols_to_multiply].mul(df["GRAP factor"], axis=0)
 
     grap_result_df = df.groupby(breakdowns_list)[cols_to_multiply].sum().reset_index()
-    grap_result_df.loc['Total'] = grap_result_df.sum()
-    grap_result_df.loc[grap_result_df.index[-1], breakdowns_list] = 'Total'
+
+    # Create the "Total" row
+    total_row = {col: "Total" for col in breakdowns_list}  # Set string columns to "Total"
+    for col in cols_to_multiply:
+        total_row[col] = df[col].sum()  # Compute the sum for numeric columns
+
+    # Append the row to the DataFrame
+    grap_result_df = pd.concat([pd.DataFrame([total_row]), grap_result_df], ignore_index=True)
+
+    # grap_result_df.loc['Total'] = grap_result_df.sum()
+    # grap_result_df.loc[grap_result_df.index[-1], breakdowns_list] = 'Total'
 
     return grap_result_df
