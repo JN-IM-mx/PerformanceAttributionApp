@@ -46,11 +46,9 @@ def effects_analysis(data_df, classification_criteria):
 
     # Assuming we only want to display Income, Yield curve, Credit and Residual effects
     attribution_df["Residual"] = (attribution_df["Excess return"]
-                                  - attribution_df["Price"]
-                                  - attribution_df["Trading"]
-                                  - attribution_df["Currency"]
-                                  - attribution_df["Global other"]
-                                  - attribution_df["Rolldown"]
+                                  - attribution_df["Income"]
+                                  - attribution_df["Yield curve"]
+                                  - attribution_df["Credit"]
                                   )
 
     attribution_columns = ["Start Date",
@@ -111,11 +109,9 @@ def effects_analysis_instrument(data_df, classification_criteria, classification
 
     # Assuming we only want to display Income, Yield curve, Credit and Residual effects
     instruments_df["Residual"] = (instruments_df["Excess return"]
-                                  - instruments_df["Price"]
-                                  - instruments_df["Trading"]
-                                  - instruments_df["Currency"]
-                                  - instruments_df["Global other"]
-                                  - instruments_df["Rolldown"]
+                                  - instruments_df["Income"]
+                                  - instruments_df["Yield curve"]
+                                  - instruments_df["Credit"]
                                   )
 
     instruments_columns = ["Start Date",
