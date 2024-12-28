@@ -54,13 +54,19 @@ if portfolios_file is not None and benchmarks_file is not None:
 
 
     if data_source_toggle == "Use TPK data":
-        default_portfolio = "EUR EQ LARGE CP"
+        if model == "Brinson-Fachler" or model == "Brinson-Hood-Beebower":
+            default_portfolio = "EUR EQ LARGE CP"
+            default_benchmark_index = 0
+        else:
+            default_portfolio = "LIQ EUR CORP"
+            default_benchmark_index = 1
     else:
         default_portfolio = portfolios[0]
+        default_benchmark_index = 0
 
     # Allow the user to select the list of portfolios and benchmarks to perform the analysis on
     selected_portfolios = settings_row[3].multiselect("Portfolios", portfolios, default_portfolio)
-    selected_benchmark = settings_row[4].selectbox("Benchmark", benchmarks,index=0)
+    selected_benchmark = settings_row[4].selectbox("Benchmark", benchmarks,index=default_benchmark_index)
 
     # Create 2 rows and 2 columns, left column is for allocation criteria/instrument, right for analysis results
     analysis_master_row = st.columns([0.25, 0.75])
