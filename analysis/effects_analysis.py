@@ -7,7 +7,7 @@ def excess_return(row, effect):
     return contrib_ptf - contrib_bm
 
 
-def effects_analysis(data_df, classification_criteria):
+def effects_analysis(data_df, classification_criteria, effects):
     # Sum all values across the instruments
     attribution_df = data_df.groupby(["Start Date", classification_criteria]).agg({
                            "DeltaMv_portfolio": "sum",
@@ -45,29 +45,34 @@ def effects_analysis(data_df, classification_criteria):
     attribution_df["Excess return"] = attribution_df.apply(excess_return, axis=1, args=("",))
 
     # Assuming we only want to display Income, Yield curve, Credit and Residual effects
-    attribution_df["Residual"] = (attribution_df["Excess return"]
-                                  - attribution_df["Income"]
-                                  - attribution_df["Yield curve"]
-                                  - attribution_df["Credit"]
-                                  )
+    # attribution_df["Residual"] = (attribution_df["Excess return"]
+    #                               - attribution_df["Income"]
+    #                               - attribution_df["Yield curve"]
+    #                               - attribution_df["Credit"]
+    #                               )
 
-    attribution_columns = ["Start Date",
-                           classification_criteria,
-                           "Income",
-                           "Yield curve",
-                           "Credit",
-                           "Residual",
-                           "Excess return",
-                           "TotalReturn_portfolio",
-                           "TotalReturn_benchmark"
-                           ]
+    attribution_df["Residual"] = attribution_df["Excess return"] - attribution_df[effects].sum(axis=1)
+
+
+    # attribution_columns = ["Start Date",
+    #                        classification_criteria,
+    #                        "Income",
+    #                        "Yield curve",
+    #                        "Credit",
+    #                        "Residual",
+    #                        "Excess return",
+    #                        "TotalReturn_portfolio",
+    #                        "TotalReturn_benchmark"
+    #                        ]
+
+    attribution_columns = ["Start Date", classification_criteria] + effects + ["Residual", "Excess return", "TotalReturn_portfolio", "TotalReturn_benchmark"]
 
     attribution_df = attribution_df[attribution_columns]
 
     return attribution_df
 
 
-def effects_analysis_instrument(data_df, classification_criteria, classification_value):
+def effects_analysis_instrument(data_df, classification_criteria, classification_value, effects):
     data_df = data_df[data_df[classification_criteria] == classification_value]
     instruments_columns = ["Start Date",
                            "Product description",
@@ -107,23 +112,29 @@ def effects_analysis_instrument(data_df, classification_criteria, classification
     instruments_df["Credit"] = instruments_df.apply(excess_return, axis=1, args=("Credit",))
     instruments_df["Excess return"] = instruments_df.apply(excess_return, axis=1, args=("",))
 
-    # Assuming we only want to display Income, Yield curve, Credit and Residual effects
-    instruments_df["Residual"] = (instruments_df["Excess return"]
-                                  - instruments_df["Income"]
-                                  - instruments_df["Yield curve"]
-                                  - instruments_df["Credit"]
-                                  )
+    # # Assuming we only want to display Income, Yield curve, Credit and Residual effects
+    # instruments_df["Residual"] = (instruments_df["Excess return"]
+    #                               - instruments_df["Income"]
+    #                               - instruments_df["Yield curve"]
+    #                               - instruments_df["Credit"]
+    #                               )
 
-    instruments_columns = ["Start Date",
-                           "Product description",
-                           "Income",
-                           "Yield curve",
-                           "Credit",
-                           "Residual",
-                           "Excess return",
-                           "TotalReturn_portfolio",
-                           "TotalReturn_benchmark"
-                           ]
+    instruments_df["Residual"] = instruments_df["Excess return"] - instruments_df[effects].sum(axis=1)
+
+
+    # instruments_columns = ["Start Date",
+    #                        "Product description",
+    #                        "Income",
+    #                        "Yield curve",
+    #                        "Credit",
+    #                        "Residual",
+    #                        "Excess return",
+    #                        "TotalReturn_portfolio",
+    #                        "TotalReturn_benchmark"
+    #                        ]
+
+    instruments_columns = ["Start Date", "Product description"] + effects + ["Residual", "Excess return", "TotalReturn_portfolio", "TotalReturn_benchmark"]
+
 
     instruments_df = instruments_df[instruments_columns]
 

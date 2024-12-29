@@ -41,7 +41,7 @@ if portfolios_file is not None and benchmarks_file is not None:
     reference_date = settings_row[1].date_input("Start date", datetime.date(2019, 12, 31))
     decimal_places = settings_row[2].selectbox("Decimal places", (2, 4, 8, 12))
 
-    # Load the data files, replacing NaNs with zeros
+    # Load the performance data and classifications files
     portfolio_df = pd.read_csv(portfolios_file)
     benchmark_df = pd.read_csv(benchmarks_file)
     classifications_df = pd.read_csv(classifications_file)
@@ -67,6 +67,12 @@ if portfolios_file is not None and benchmarks_file is not None:
     # Allow the user to select the list of portfolios and benchmarks to perform the analysis on
     selected_portfolios = settings_row[3].multiselect("Portfolios", portfolios, default_portfolio)
     selected_benchmark = settings_row[4].selectbox("Benchmark", benchmarks,index=default_benchmark_index)
+
+    # Selection of effects for the Effects analysis model
+    if model == "Fixed Income attribution":
+        effects_full_list = ["Income", "Yield curve", "Credit", "Rolldown", "Trading", "Global other"]
+        default_effects = ["Income", "Yield curve", "Credit"]
+        effects = st.multiselect("Effects", effects_full_list, default_effects)
 
     # Create 2 rows and 2 columns, left column is for allocation criteria/instrument, right for analysis results
     analysis_master_row = st.columns([0.25, 0.75])
@@ -94,7 +100,7 @@ if portfolios_file is not None and benchmarks_file is not None:
         elif model == "Brinson-Hood-Beebower":
             attribution_df = brinson_hood_beebower(data_df, classification_criteria)
         else:
-            attribution_df = effects_analysis(data_df, classification_criteria)
+            attribution_df = effects_analysis(data_df, classification_criteria, effects)
 
         grap_attribution_df = grap_smoothing(attribution_df, reference_date, [classification_criteria])
 
@@ -119,7 +125,7 @@ if portfolios_file is not None and benchmarks_file is not None:
         elif model == "Brinson-Hood-Beebower":
             instruments_df = brinson_hood_beebower_instrument(data_df, classification_criteria, classification_value)
         else:
-            instruments_df = effects_analysis_instrument(data_df, classification_criteria, classification_value)
+            instruments_df = effects_analysis_instrument(data_df, classification_criteria, classification_value, effects)
 
         grap_instruments_df = grap_smoothing(instruments_df, reference_date, ["Product description"])
 
