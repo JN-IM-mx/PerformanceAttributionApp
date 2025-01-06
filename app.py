@@ -105,7 +105,11 @@ if portfolios_file is not None and benchmarks_file is not None:
         grap_attribution_df = grap_smoothing(attribution_df, reference_date, [classification_criteria])
 
         # Display main analysis results
-        analysis_master_row[1].markdown(f"**{model} Attribution**:")
+        if model =="Fixed Income attribution":
+            analysis_master_row[1].markdown("**Fixed Income attribution**:")
+        else:
+            analysis_master_row[1].markdown(f"**{model} attribution**:")
+
         analysis_master_row[1].dataframe(
             style_dataframe(grap_attribution_df, decimal_places),
             hide_index=True,
