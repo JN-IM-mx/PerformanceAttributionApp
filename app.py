@@ -134,9 +134,9 @@ if portfolios_file is not None and benchmarks_file is not None:
         grap_instruments_df = grap_smoothing(instruments_df, reference_date, ["Product description"])
 
         if model == "Brinson-Fachler":
-            analysis_detail_row[1].markdown("**Instrument Selection Details**:")
+            analysis_detail_row[1].markdown("**Instrument selection details**:")
         elif model == "Brinson-Hood-Beebower":
-            analysis_detail_row[1].markdown("**Instrument Selection and Interaction Details**:")
+            analysis_detail_row[1].markdown("**Instrument selection and interaction details**:")
         else:
             analysis_detail_row[1].markdown("**Instrument effects analysis**:")
 
