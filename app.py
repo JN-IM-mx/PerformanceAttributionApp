@@ -41,7 +41,7 @@ else:
                         'DeltaMvGlobalOther', 'DeltaMvRolldown', 'DeltaMvIncome', 'DeltaMvYieldCurves',
                         'DeltaMvCredit']
 
-    EXPECTED_BENCHMARKS_COLUMNS = ['Portfolio', 'Instrument', 'ProductTaxonomy', 'Start Date', 'End Date',
+    EXPECTED_BENCHMARKS_COLUMNS = ['Benchmark', 'Instrument', 'ProductTaxonomy', 'Start Date', 'End Date',
                                   'DeltaMv', 'PreviousMv', 'DeltaMvPrice', 'DeltaMvTrading', 'DeltaMvCurrency',
                                   'DeltaMvGlobalOther', 'DeltaMvRolldown', 'DeltaMvIncome', 'DeltaMvYieldCurves',
                                   'DeltaMvCredit']
@@ -51,6 +51,10 @@ else:
             # Read just the first row to check columns
             df1 = pd.read_csv(portfolios_file, nrows=1)
             df2 = pd.read_csv(benchmarks_file, nrows=1)
+
+            # Clear the uploaded files buffers
+            portfolios_file.seek(0)
+            benchmarks_file.seek(0)
 
             # Get the uploaded file's columns
             ptf_uploaded_columns = df1.columns.tolist()
