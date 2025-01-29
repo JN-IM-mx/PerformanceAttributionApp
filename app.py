@@ -23,17 +23,55 @@ st.markdown("### :bar_chart: Performance attribution")
 data_source_toggle = st.segmented_control("Performance data source", ["Use TPK data", "Upload csv files"], default="Use TPK data", label_visibility="hidden")
 
 # Load csv data
+correct_format = True
+
 classifications_file = "./data/classifications.csv"
 if data_source_toggle == "Use TPK data":
     portfolios_file = "./data/portfolios.csv"
     benchmarks_file = "./data/benchmarks.csv"
 else:
+    correct_format = False
     file_upload_row = st.container(border=True).columns(2)
     portfolios_file = file_upload_row[0].file_uploader("portfolios.csv file", help="File produced by the Performance service")
     benchmarks_file = file_upload_row[1].file_uploader("benchmarks.csv file", help="File produced by the Performance service")
 
+    # Define your expected columns here
+    EXPECTED_PORTFOLIOS_COLUMNS = ['Portfolio', 'Instrument', 'ProductTaxonomy', 'Start Date', 'End Date',
+                        'DeltaMv', 'PreviousMv', 'DeltaMvPrice', 'DeltaMvTrading', 'DeltaMvCurrency',
+                        'DeltaMvGlobalOther', 'DeltaMvRolldown', 'DeltaMvIncome', 'DeltaMvYieldCurves',
+                        'DeltaMvCredit']
+
+    EXPECTED_BENCHMARKS_COLUMNS = ['Portfolio', 'Instrument', 'ProductTaxonomy', 'Start Date', 'End Date',
+                                  'DeltaMv', 'PreviousMv', 'DeltaMvPrice', 'DeltaMvTrading', 'DeltaMvCurrency',
+                                  'DeltaMvGlobalOther', 'DeltaMvRolldown', 'DeltaMvIncome', 'DeltaMvYieldCurves',
+                                  'DeltaMvCredit']
+
+    if portfolios_file is not None and benchmarks_file is not None:
+        try:
+            # Read just the first row to check columns
+            df1 = pd.read_csv(portfolios_file, nrows=1)
+            df2 = pd.read_csv(benchmarks_file, nrows=1)
+
+            # Get the uploaded file's columns
+            ptf_uploaded_columns = df1.columns.tolist()
+            bm_uploaded_columns = df2.columns.tolist()
+
+            # Check if columns match expected columns
+            if ptf_uploaded_columns != EXPECTED_PORTFOLIOS_COLUMNS or bm_uploaded_columns != EXPECTED_BENCHMARKS_COLUMNS:
+                st.error('❌ Wrong file format! Please run "PerfContrib.sh --action export" to generate your files in the contribution-client-tool directory')
+                col1, col2, col3 = st.columns([1, 3, 1])
+                with col2:
+                    st.image("https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExNTQyNDBvMWp1bmp0YWE3MDBxdGtoM2trbjV0bmQzbWNrdWZiYnA4ZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/JfLdIahamXQI0/giphy.gif", width = 600)
+                st.stop()
+            else:
+                correct_format = True
+        except Exception as e:
+            st.error(f"Error reading file: {str(e)}")
+            st.stop()
+
+
 # App logic when input files are loaded
-if portfolios_file is not None and benchmarks_file is not None:
+if correct_format:
 
     # User settings
     settings_row = st.columns(5)
