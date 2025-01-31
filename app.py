@@ -7,6 +7,7 @@ from analysis.brinson_fachler import brinson_fachler, brinson_fachler_instrument
 from analysis.brinson_hood_beebower import brinson_hood_beebower, brinson_hood_beebower_instrument
 from analysis.effects_analysis import effects_analysis, effects_analysis_instrument
 from analysis.grap_smoothing import grap_smoothing
+from analysis.modified_frongello_smoothing import modified_frongello_smoothing
 from utils.styling import style_dataframe, dataframe_height
 
 # Streamlit page configuration
@@ -78,10 +79,11 @@ else:
 if correct_format:
 
     # User settings
-    settings_row = st.columns(5)
+    settings_row = st.columns(6)
     model = settings_row[0].selectbox("Model", ["Brinson-Fachler", "Brinson-Hood-Beebower", "Fixed Income attribution"])
-    reference_date = settings_row[1].date_input("Start date", datetime.date(2019, 12, 31))
-    decimal_places = settings_row[2].selectbox("Decimal places", (2, 4, 8, 12))
+    smoothing_algorithm = settings_row[1].selectbox("Smoothing algorithm", ["GRAP (Frongello)", "Modified Frongello"])
+    reference_date = settings_row[2].date_input("Start date", datetime.date(2019, 12, 31))
+    decimal_places = settings_row[3].selectbox("Decimal places", (2, 4, 8, 12))
 
     # Load the performance data and classifications files
     portfolio_df = pd.read_csv(portfolios_file)
@@ -107,8 +109,8 @@ if correct_format:
         default_benchmark_index = 0
 
     # Allow the user to select the list of portfolios and benchmarks to perform the analysis on
-    selected_portfolios = settings_row[3].multiselect("Portfolios", portfolios, default_portfolio)
-    selected_benchmark = settings_row[4].selectbox("Benchmark", benchmarks,index=default_benchmark_index)
+    selected_portfolios = settings_row[4].multiselect("Portfolios", portfolios, default_portfolio)
+    selected_benchmark = settings_row[5].selectbox("Benchmark", benchmarks,index=default_benchmark_index)
 
     # Selection of effects for the Effects analysis model
     if model == "Fixed Income attribution":
@@ -136,7 +138,7 @@ if correct_format:
 
         # Prepare the data
         data_df = prepare_data(selected_portfolios, selected_benchmark, portfolio_df, benchmark_df, classifications_df)
-
+        # Apply the model
         if model == "Brinson-Fachler":
             attribution_df = brinson_fachler(data_df, classification_criteria)
         elif model == "Brinson-Hood-Beebower":
@@ -144,7 +146,11 @@ if correct_format:
         else:
             attribution_df = effects_analysis(data_df, classification_criteria, effects)
 
-        grap_attribution_df = grap_smoothing(attribution_df, reference_date, [classification_criteria])
+        # Apply the smoothing algorithm
+        if smoothing_algorithm == "GRAP (Frongello)":
+            master_attribution_df = grap_smoothing(attribution_df, reference_date, [classification_criteria])
+        else:
+            master_attribution_df = modified_frongello_smoothing(attribution_df, reference_date, [classification_criteria])
 
         # Display main analysis results
         if model =="Fixed Income attribution":
@@ -153,19 +159,20 @@ if correct_format:
             analysis_master_row[1].markdown(f"**{model} attribution**:")
 
         analysis_master_row[1].dataframe(
-            style_dataframe(grap_attribution_df, decimal_places),
+            style_dataframe(master_attribution_df, decimal_places),
             hide_index=True,
             width=1000,
-            height=dataframe_height(grap_attribution_df)
+            height=dataframe_height(master_attribution_df)
         )
 
         # Allow user to drill down by classification
-        classification_values = [val for val in grap_attribution_df[classification_criteria].to_list() if
+        classification_values = [val for val in master_attribution_df[classification_criteria].to_list() if
                                  val not in ["Total"]]
         classification_value = analysis_detail_row[0].radio(f"Select a {classification_criteria}:",
                                                             classification_values)
 
         # Drill-down analysis for specific classification
+        # Apply the model
         if model == "Brinson-Fachler":
             instruments_df = brinson_fachler_instrument(data_df, classification_criteria, classification_value)
         elif model == "Brinson-Hood-Beebower":
@@ -173,7 +180,11 @@ if correct_format:
         else:
             instruments_df = effects_analysis_instrument(data_df, classification_criteria, classification_value, effects)
 
-        grap_instruments_df = grap_smoothing(instruments_df, reference_date, ["Product description"])
+        # Apply the smoothing algorithm
+        if smoothing_algorithm == "GRAP (Frongello)":
+            details_instruments_df = grap_smoothing(instruments_df, reference_date, ["Product description"])
+        else:
+            details_instruments_df = modified_frongello_smoothing(instruments_df, reference_date, ["Product description"])
 
         if model == "Brinson-Fachler":
             analysis_detail_row[1].markdown("**Instrument selection details**:")
@@ -183,8 +194,8 @@ if correct_format:
             analysis_detail_row[1].markdown("**Instrument effects analysis**:")
 
         analysis_detail_row[1].dataframe(
-            style_dataframe(grap_instruments_df, decimal_places),
+            style_dataframe(details_instruments_df, decimal_places),
             hide_index=True,
             width=1000,
-            height=dataframe_height(grap_instruments_df)
+            height=dataframe_height(details_instruments_df)
         )
