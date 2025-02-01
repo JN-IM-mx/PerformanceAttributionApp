@@ -23,7 +23,7 @@ def prepare_data(ptf_list, bm, ptf_df, bm_df, classifications_df):
     merged_df["TotalReturn_portfolio"] = merged_df["TotalDeltaMv_portfolio"] / merged_df["TotalPreviousMv_portfolio"]
     merged_df["TotalReturn_benchmark"] = merged_df["TotalDeltaMv_benchmark"] / merged_df["TotalPreviousMv_benchmark"]
 
-    # Put "Cash" as classification for all instruments where Product type = Cash
+    # Put Cash, Fees, Derivatives as classification for all instruments that are not securities
     columns_to_update = [col for col in classifications_df.columns if col not in ["Product", "Product description", "Product type", "Issuer"]]
 
     classifications_df.loc[classifications_df["Product type"] == "Cash", columns_to_update] = "Cash"

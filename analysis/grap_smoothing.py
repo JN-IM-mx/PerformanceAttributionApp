@@ -40,7 +40,4 @@ def grap_smoothing(df, start_date, breakdowns_list):
     # Append the row to the DataFrame
     grap_result_df = pd.concat([pd.DataFrame([total_row]), grap_result_df], ignore_index=True)
 
-    # grap_result_df.loc['Total'] = grap_result_df.sum()
-    # grap_result_df.loc[grap_result_df.index[-1], breakdowns_list] = 'Total'
-
     return grap_result_df
