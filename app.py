@@ -148,9 +148,9 @@ if correct_format:
 
         # Apply the smoothing algorithm
         if smoothing_algorithm == "GRAP (Frongello)":
-            master_attribution_df = grap_smoothing(attribution_df, reference_date, [classification_criteria])
+            master_attribution_df = grap_smoothing(attribution_df, reference_date, classification_criteria)
         else:
-            master_attribution_df = modified_frongello_smoothing(attribution_df, reference_date, [classification_criteria])
+            master_attribution_df = modified_frongello_smoothing(attribution_df, reference_date, classification_criteria)
 
         # Display main analysis results
         if model =="Fixed Income attribution":
@@ -182,9 +182,9 @@ if correct_format:
 
         # Apply the smoothing algorithm
         if smoothing_algorithm == "GRAP (Frongello)":
-            details_instruments_df = grap_smoothing(instruments_df, reference_date, ["Product description"])
+            details_instruments_df = grap_smoothing(instruments_df, reference_date,"Product description")
         else:
-            details_instruments_df = modified_frongello_smoothing(instruments_df, reference_date, ["Product description"])
+            details_instruments_df = modified_frongello_smoothing(instruments_df, reference_date, "Product description")
 
         if model == "Brinson-Fachler":
             analysis_detail_row[1].markdown("**Instrument selection details**:")
