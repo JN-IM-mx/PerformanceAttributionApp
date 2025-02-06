@@ -3,14 +3,14 @@ import pandas as pd
 def prepare_data(ptf_list, bm, ptf_df, bm_df, classifications_df):
     # Filter ptf_df on portfolios in ptf_list and remove unneeded columns
     ptf_df = ptf_df[ptf_df["Portfolio"].isin(ptf_list)]
-    ptf_df = ptf_df.drop(["Portfolio", "ProductTaxonomy", "End Date"], axis=1)
-    ptf_df = ptf_df.groupby(["Start Date", "Instrument"]).sum().reset_index()
+    ptf_df = ptf_df.drop(["Portfolio", "End Date"], axis=1)
+    ptf_df = ptf_df.groupby(["Start Date", "Instrument", "ProductTaxonomy"]).sum().reset_index()
 
     # Filter bm_df on bm benchmark and remove unneeded columns
     bm_df = bm_df[bm_df["Benchmark"] == bm]
-    bm_df = bm_df.drop(["Benchmark", "ProductTaxonomy", "End Date"], axis=1)
+    bm_df = bm_df.drop(["Benchmark", "End Date"], axis=1)
 
-    merged_df = pd.merge(ptf_df, bm_df, how="outer", on=["Instrument", "Start Date"], suffixes=("_portfolio", "_benchmark")).fillna(0)
+    merged_df = pd.merge(ptf_df, bm_df, how="outer", on=["Instrument", "ProductTaxonomy", "Start Date"], suffixes=("_portfolio", "_benchmark")).fillna(0)
 
     # Compute total MVs and total returns per date
     total_mv_returns_columns = ["Start Date", "DeltaMv_portfolio", "DeltaMv_benchmark", "PreviousMv_portfolio", "PreviousMv_benchmark"]
@@ -23,16 +23,29 @@ def prepare_data(ptf_list, bm, ptf_df, bm_df, classifications_df):
     merged_df["TotalReturn_portfolio"] = merged_df["TotalDeltaMv_portfolio"] / merged_df["TotalPreviousMv_portfolio"]
     merged_df["TotalReturn_benchmark"] = merged_df["TotalDeltaMv_benchmark"] / merged_df["TotalPreviousMv_benchmark"]
 
+    # Map taxonomies to product types
+    taxonomy_to_product_type = {
+        'Equities': 'Equity',
+        'Bonds': 'Bond',
+        'Cash': 'Cash'
+    }
+
+    # Apply taxonomy, product type mapping and set Derivative to values that aren't matched in the dictionary (all versions of derivatives will be caught)
+    merged_df['Product_Type'] = merged_df['ProductTaxonomy'].map(lambda x: taxonomy_to_product_type.get(x, 'Derivative'))
+
     # Put Cash, Fees, Derivatives as classification for all instruments that are not securities
     columns_to_update = [col for col in classifications_df.columns if col not in ["Product", "Product description", "Product type", "Issuer"]]
 
     classifications_df.loc[classifications_df["Product type"] == "Cash", columns_to_update] = "Cash"
-    classifications_df.loc[classifications_df["Product type"] == "Derivative", columns_to_update] = "Derivatives"
     classifications_df.loc[classifications_df["Issuer"] == "MUREX INVESTMENT MANAGEMENT (LU) SA", columns_to_update] = "Fees"
     classifications_df.loc[classifications_df["Product"] == "MUREX SOLUTIONS EUR BALANCED A", columns_to_update] = "Fees"
     classifications_df.loc[classifications_df["Product"] == "LIQUID EURO CORPORATES B", columns_to_update] = "Fees"
 
-    merged_df = pd.merge(merged_df, classifications_df, left_on="Instrument", right_on="Product", how="left")
+    merged_df = pd.merge(merged_df, classifications_df, left_on=['Instrument', 'Product_Type'], right_on=['Product', 'Product type'], how="left")
+
+    # Treatment of all derivatives including undefined derivatives (eg. equity return swaps etc.)
+    merged_df.loc[merged_df["Product_Type"] == "Derivative", columns_to_update] = "Derivatives"
+    merged_df.loc[merged_df["Product_Type"] == "Derivative", "Product description"] = merged_df["Instrument"]
 
     return merged_df
 
