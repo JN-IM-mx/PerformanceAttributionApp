@@ -1308,7 +1308,7 @@ DPW.DE,Equity,DEUTSCHE POST AG,Deutsche Post AG,Industrials,Industrials,Industri
 DSM.NL,Equity,KONINKLIJKE DSM NV,Koninklijke DSM NV,Industrials,Industrials,Industrials,Industrials,Western Europe,NL,No Rating,No Rating,No Rating
 DSY.FR,Equity,Dassault Systemes SE,Dassault Systemes SE,Information Technology,Information Technology,Information Technology,Information Technology,Western Europe,FR,No Rating,No Rating,No Rating
 DTE.DE,Equity,DEUTSCHE TELEKOM AG,Deutsche Telekom AG,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,Western Europe,DE,No Rating,No Rating,No Rating
-ECPI CIRCULAR LEADERS C,Equity,MUREX INVESTMENT MANAGEMENT (LU) SA,ECPI CIRCULAR LEADERS C,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,No Region,No Country,No Rating,No Rating,No Rating
+ECPI CIRCULAR LEADERS C,Fees,MUREX INVESTMENT MANAGEMENT (LU) SA,ECPI CIRCULAR LEADERS C,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,No Region,No Country,No Rating,No Rating,No Rating
 EL.FR,Equity,ESSILOR INTERNATIONAL (COMPAGNIE GE,EssilorLuxottica SA,Health Care,Health Care Equipment & Services,Health Care Equipment & Supplies,Health Care Supplies,Western Europe,FR,No Rating,No Rating,No Rating
 EN.FR,Equity,BOUYGUES,Bouygues SA,Communication Services,Telecommunication Services,Telecommunication Services,Telecommunication Services,Western Europe,FR,No Rating,No Rating,No Rating
 ENEL.IT,Equity,ENEL S P A,Enel SpA,Utilities,Utilities,Utilities,Utilities,Western Europe,IT,No Rating,No Rating,No Rating
@@ -1318,11 +1318,11 @@ EOAN.DE,Equity,EON SE,E.ON SE,No GICS Sector,No GICS Sector,No GICS Sector,No GI
 EQ ETF,Equity,No Issuer,EQ ETF,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,No Region,No Country,No Rating,No Rating,No Rating
 EQUITY WITHOUT ISIN,Equity,CTP_BNKISS_BIC_PAYNET_CONF_SI,CARREFOUR,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,No Region,No Country,No Rating,No Rating,No Rating
 ERF.FR,Equity,Eurofins Scientific SE,Eurofins Scientific SE,Health Care,Health Care Equipment & Services,Health Care Equipment & Supplies,Health Care Equipment,Western Europe,FR,No Rating,No Rating,No Rating
-EURO EQUITY LARGE CAP 2 A,Equity,MUREX INVESTMENT MANAGEMENT (LU) SA,Intl Fund Euro Large Cap 2 A,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,Western Europe,LU,No Rating,No Rating,No Rating
-EURO EQUITY LARGE CAP A,Equity,MUREX INVESTMENT MANAGEMENT (LU) SA,Intl Fund Euro Large Cap A,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,Western Europe,LU,No Rating,No Rating,No Rating
+EURO EQUITY LARGE CAP 2 A,Fees,MUREX INVESTMENT MANAGEMENT (LU) SA,Intl Fund Euro Large Cap 2 A,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,Western Europe,LU,No Rating,No Rating,No Rating
+EURO EQUITY LARGE CAP A,Fees,MUREX INVESTMENT MANAGEMENT (LU) SA,Intl Fund Euro Large Cap A,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,Western Europe,LU,No Rating,No Rating,No Rating
 EURO STOXX 50,Equity,No Issuer,EURO STOXX 50,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,No Region,No Country,No Rating,No Rating,No Rating
 EURO STOXX 50 ETF,Equity,No Issuer,EURO STOXX 50 ETF,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,No Region,No Country,No Rating,No Rating,No Rating
-EUROZONE LARGE CAP EQUITY - A,Equity,MUREX INVESTMENT MANAGEMENT (LU) SA,EUROZONE LARGE CAP EQUITY - A,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,No Region,No Country,No Rating,No Rating,No Rating
+EUROZONE LARGE CAP EQUITY - A,Fees,MUREX INVESTMENT MANAGEMENT (LU) SA,EUROZONE LARGE CAP EQUITY - A,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,No Region,No Country,No Rating,No Rating,No Rating
 FBM KLCI,Equity,No Issuer,FTSE Bursa Malaysia KLCI Index,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,No Region,No Country,No Rating,No Rating,No Rating
 FIDELITY FAST UK FUND,Equity,FIDELITY IM,Fidelity Active Strategy - FAST - UK Fund Y-ACC-GBB,Financials,Banks,Banks,Banks,Western Europe,LU,No Rating,No Rating,No Rating
 FIVE STAR SELECTION B,Equity,MUREX INVESTMENT MANAGEMENT (LU) SA,Five Star Selection Fund,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,No Region,No Country,No Rating,No Rating,No Rating
@@ -1373,12 +1373,12 @@ KO.US,Equity,COCACOLA HBC FIN PLC,Coca-Cola Co/The,No GICS Sector,No GICS Sector
 KOSPI 200,Equity,No Issuer,Korea Stock Price Index,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,No Region,No Country,No Rating,No Rating,No Rating
 KRRYF.BM,Equity,No Issuer,KRRYF.BM,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,No Region,No Country,No Rating,No Rating,No Rating
 LIN.DE,Equity,LINDE PLC,Linde PLC,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,Western Europe,DE,No Rating,No Rating,No Rating
-LIQUID EURO CORPORATES 2 A,Equity,MUREX INVESTMENT MANAGEMENT (LU) SA,LIQUID EURO CORPORATES 2 A,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,Western Europe,LU,No Rating,No Rating,No Rating
-LIQUID EURO CORPORATES A1,Equity,MUREX INVESTMENT MANAGEMENT (LU) SA,Euro Area Liquid CorporatesA,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,Western Europe,LU,No Rating,No Rating,No Rating
-LIQUID EURO CORPORATES B,Equity,No Issuer,Euro Area Liquid Corporates B,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,No Region,No Country,No Rating,No Rating,No Rating
-LIQUID EURO SOVEREIGN 2 A,Equity,MUREX INVESTMENT MANAGEMENT (LU) SA,Euro Government Liquidity 2 Fund A,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,Western Europe,LU,No Rating,No Rating,No Rating
-LIQUID EURO SOVEREIGN A,Equity,MUREX INVESTMENT MANAGEMENT (LU) SA,Euro Government Liquidity Fund A,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,Western Europe,LU,No Rating,No Rating,No Rating
-LIQUID EURO SOVEREIGN I,Equity,MUREX INVESTMENT MANAGEMENT (LU) SA,Euro Government Liquidity Fund I,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,Western Europe,LU,No Rating,No Rating,No Rating
+LIQUID EURO CORPORATES 2 A,Fees,MUREX INVESTMENT MANAGEMENT (LU) SA,LIQUID EURO CORPORATES 2 A,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,Western Europe,LU,No Rating,No Rating,No Rating
+LIQUID EURO CORPORATES A1,Fees,MUREX INVESTMENT MANAGEMENT (LU) SA,Euro Area Liquid CorporatesA,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,Western Europe,LU,No Rating,No Rating,No Rating
+LIQUID EURO CORPORATES B,Fees,No Issuer,Euro Area Liquid Corporates B,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,No Region,No Country,No Rating,No Rating,No Rating
+LIQUID EURO SOVEREIGN 2 A,Fees,MUREX INVESTMENT MANAGEMENT (LU) SA,Euro Government Liquidity 2 Fund A,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,Western Europe,LU,No Rating,No Rating,No Rating
+LIQUID EURO SOVEREIGN A,Fees,MUREX INVESTMENT MANAGEMENT (LU) SA,Euro Government Liquidity Fund A,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,Western Europe,LU,No Rating,No Rating,No Rating
+LIQUID EURO SOVEREIGN I,Fees,MUREX INVESTMENT MANAGEMENT (LU) SA,Euro Government Liquidity Fund I,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,Western Europe,LU,No Rating,No Rating,No Rating
 LOW.US,Equity,LOWES COS INC,Lowe's Cos Inc,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,North America,US,No Rating,No Rating,No Rating
 LR.FR,Equity,Legrand SA,Legrand SA,Consumer Staples,Consumer Staples,Consumer Staples,Consumer Staples,Western Europe,FR,No Rating,No Rating,No Rating
 LYB.US,Equity,LYONDELL CHEM CO,LyondellBasell Industries NV,No GICS Sector,No GICS Sector,No GICS Sector,No GICS Sector,North America,US,No Rating,No Rating,No Rating

@@ -25,27 +25,27 @@ def prepare_data(ptf_list, bm, ptf_df, bm_df, classifications_df):
 
     # Map taxonomies to product types
     taxonomy_to_product_type = {
-        'Equities': 'Equity',
-        'Bonds': 'Bond',
-        'Cash': 'Cash'
+        "Equities": "Equity",
+        "Fund S/R asset": "Equity",
+        "Bonds": "Bond",
+        "Fund fee": "Fees",
+        "Fund share fee": "Fees",
+        "Cash": "Cash"
     }
 
     # Apply taxonomy, product type mapping and set Derivative to values that aren't matched in the dictionary (all versions of derivatives will be caught)
-    merged_df['Product_Type'] = merged_df['ProductTaxonomy'].map(lambda x: taxonomy_to_product_type.get(x, 'Derivative'))
+    merged_df["Product type"] = merged_df["ProductTaxonomy"].map(lambda x: taxonomy_to_product_type.get(x, 'Derivative'))
 
     # Put Cash, Fees, Derivatives as classification for all instruments that are not securities
     columns_to_update = [col for col in classifications_df.columns if col not in ["Product", "Product description", "Product type", "Issuer"]]
-
     classifications_df.loc[classifications_df["Product type"] == "Cash", columns_to_update] = "Cash"
-    classifications_df.loc[classifications_df["Issuer"] == "MUREX INVESTMENT MANAGEMENT (LU) SA", columns_to_update] = "Fees"
-    classifications_df.loc[classifications_df["Product"] == "MUREX SOLUTIONS EUR BALANCED A", columns_to_update] = "Fees"
-    classifications_df.loc[classifications_df["Product"] == "LIQUID EURO CORPORATES B", columns_to_update] = "Fees"
+    classifications_df.loc[classifications_df["Product type"] == "Fees", columns_to_update] = "Fees"
 
-    merged_df = pd.merge(merged_df, classifications_df, left_on=['Instrument', 'Product_Type'], right_on=['Product', 'Product type'], how="left")
+    merged_df = pd.merge(merged_df, classifications_df, left_on=["Instrument", "Product type"], right_on=["Product", "Product type"], how="left")
 
     # Treatment of all derivatives including undefined derivatives (eg. equity return swaps etc.)
-    merged_df.loc[merged_df["Product_Type"] == "Derivative", columns_to_update] = "Derivatives"
-    merged_df.loc[merged_df["Product_Type"] == "Derivative", "Product description"] = merged_df["Instrument"]
+    merged_df.loc[merged_df["Product type"] == "Derivative", columns_to_update] = "Derivatives"
+    merged_df.loc[merged_df["Product type"] == "Derivative", "Product description"] = merged_df["Instrument"]
 
     return merged_df
 
