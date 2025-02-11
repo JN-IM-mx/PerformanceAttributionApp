@@ -6,13 +6,15 @@ from analysis.data_preparation import prepare_data
 from analysis.brinson_fachler import brinson_fachler, brinson_fachler_instrument
 from analysis.brinson_hood_beebower import brinson_hood_beebower, brinson_hood_beebower_instrument
 from analysis.effects_analysis import effects_analysis, effects_analysis_instrument
+from analysis.contribution import contribution, contribution_instrument
 from analysis.grap_smoothing import grap_smoothing
 from analysis.modified_frongello_smoothing import modified_frongello_smoothing
+from analysis.contribution_smoothing import contribution_smoothing
 from utils.styling import style_dataframe, dataframe_height
 
 # Streamlit page configuration
 st.set_page_config(
-    page_title="Performance attribution",
+    page_title="Performance contribution and attribution",
     page_icon=":bar_chart:",
     layout="wide"
 )
@@ -79,9 +81,19 @@ else:
 if correct_format:
 
     # User settings
+    contribution_attribution_toggle = st.segmented_control("Contribution or attribution", ["Attribution", "Contribution"],
+                                              default="Attribution", label_visibility="hidden")
     settings_row = st.columns(6)
-    model = settings_row[0].selectbox("Model", ["Brinson-Fachler", "Brinson-Hood-Beebower", "Fixed Income attribution"])
-    smoothing_algorithm = settings_row[1].selectbox("Smoothing algorithm", ["GRAP (Frongello)", "Modified Frongello"])
+    model = settings_row[0].selectbox("Model", ["Brinson-Fachler",
+                                                "Brinson-Hood-Beebower",
+                                                "Equity contribution",
+                                                "Fixed Income attribution",
+                                                "Fixed Income contribution"])
+
+    if model == "Brinson-Fachler" or model == "Brinson-Hood-Beebower" or model == "Fixed Income attribution":
+        smoothing_algorithm = settings_row[1].selectbox("Smoothing algorithm", ["GRAP (Frongello)", "Modified Frongello"])
+    else:
+        smoothing_algorithm = "Contribution"
     reference_date = settings_row[2].date_input("Start date", datetime.date(2019, 12, 31))
     decimal_places = settings_row[3].selectbox("Decimal places", (2, 4, 8, 12))
 
@@ -98,7 +110,7 @@ if correct_format:
 
 
     if data_source_toggle == "Use TPK data":
-        if model == "Brinson-Fachler" or model == "Brinson-Hood-Beebower":
+        if model == "Brinson-Fachler" or model == "Brinson-Hood-Beebower" or model == "Equity contribution":
             default_portfolio = "EUR EQ LARGE CP"
             default_benchmark_index = 0
         else:
@@ -124,7 +136,7 @@ if correct_format:
 
     if len(selected_portfolios) > 0:
         # Radio button in the left pane, allowing to select a classification criteria
-        if model == "Fixed Income attribution":
+        if model == "Fixed Income attribution" or model == "Fixed Income contribution":
             classification_criteria = analysis_master_row[0].radio(
                 "Allocation criteria",
                 ["S&P rating", "Fitch rating", "Moody's rating", "GICS sector", "GICS industry group", "GICS industry", "GICS sub-industry", "Region", "Country"],
@@ -143,18 +155,22 @@ if correct_format:
             attribution_df = brinson_fachler(data_df, classification_criteria)
         elif model == "Brinson-Hood-Beebower":
             attribution_df = brinson_hood_beebower(data_df, classification_criteria)
-        else:
+        elif model == "Fixed Income attribution":
             attribution_df = effects_analysis(data_df, classification_criteria, effects)
+        else:
+            attribution_df = contribution(data_df, classification_criteria)
 
         # Apply the smoothing algorithm
         if smoothing_algorithm == "GRAP (Frongello)":
             master_attribution_df = grap_smoothing(attribution_df, reference_date, classification_criteria)
-        else:
+        elif smoothing_algorithm == "Modified Frongello":
             master_attribution_df = modified_frongello_smoothing(attribution_df, reference_date, classification_criteria)
+        else:
+            master_attribution_df = contribution_smoothing(attribution_df, reference_date, classification_criteria)
 
         # Display main analysis results
-        if model =="Fixed Income attribution":
-            analysis_master_row[1].markdown("**Fixed Income attribution**:")
+        if model =="Fixed Income attribution" or model == "Equity contribution" or model == "Fixed Income contribution":
+            analysis_master_row[1].markdown(f"**{model}**:")
         else:
             analysis_master_row[1].markdown(f"**{model} attribution**:")
 
@@ -167,7 +183,7 @@ if correct_format:
 
         # Allow user to drill down by classification
         classification_values = [val for val in master_attribution_df[classification_criteria].to_list() if
-                                 val not in ["Total"]]
+                                val not in ["Total"]]
         classification_value = analysis_detail_row[0].radio(f"Select a {classification_criteria}:",
                                                             classification_values)
 
@@ -177,21 +193,27 @@ if correct_format:
             instruments_df = brinson_fachler_instrument(data_df, classification_criteria, classification_value)
         elif model == "Brinson-Hood-Beebower":
             instruments_df = brinson_hood_beebower_instrument(data_df, classification_criteria, classification_value)
-        else:
+        elif model == "Fixed Income attribution":
             instruments_df = effects_analysis_instrument(data_df, classification_criteria, classification_value, effects)
+        else:
+            instruments_df = contribution_instrument(data_df, classification_criteria, classification_value)
 
         # Apply the smoothing algorithm
         if smoothing_algorithm == "GRAP (Frongello)":
             details_instruments_df = grap_smoothing(instruments_df, reference_date,"Product description")
-        else:
+        elif smoothing_algorithm == "Modified Frongello":
             details_instruments_df = modified_frongello_smoothing(instruments_df, reference_date, "Product description")
+        else:
+            details_instruments_df = contribution_smoothing(instruments_df, reference_date, "Product description")
 
         if model == "Brinson-Fachler":
             analysis_detail_row[1].markdown("**Instrument selection details**:")
         elif model == "Brinson-Hood-Beebower":
             analysis_detail_row[1].markdown("**Instrument selection and interaction details**:")
-        else:
+        elif model == "Fixed Income attribution":
             analysis_detail_row[1].markdown("**Instrument effects analysis**:")
+        else:
+            analysis_detail_row[1].markdown("**Instrument contribution**:")
 
         analysis_detail_row[1].dataframe(
             style_dataframe(details_instruments_df, decimal_places),
