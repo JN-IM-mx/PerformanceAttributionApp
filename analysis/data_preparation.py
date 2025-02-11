@@ -34,17 +34,17 @@ def prepare_data(ptf_list, bm, ptf_df, bm_df, classifications_df):
     }
 
     # Apply taxonomy, product type mapping and set Derivative to values that aren't matched in the dictionary (all versions of derivatives will be caught)
-    merged_df["Product type"] = merged_df["ProductTaxonomy"].map(lambda x: taxonomy_to_product_type.get(x, 'Derivative'))
+    merged_df["Product type"] = merged_df["ProductTaxonomy"].map(lambda x: taxonomy_to_product_type.get(x, "Derivative"))
 
-    # Put Cash, Fees, Derivatives as classification for all instruments that are not securities
+    # Put Cash and Fees as classification for all instruments that are not securities
     columns_to_update = [col for col in classifications_df.columns if col not in ["Product", "Product description", "Product type", "Issuer"]]
     classifications_df.loc[classifications_df["Product type"] == "Cash", columns_to_update] = "Cash"
     classifications_df.loc[classifications_df["Product type"] == "Fees", columns_to_update] = "Fees"
 
     merged_df = pd.merge(merged_df, classifications_df, left_on=["Instrument", "Product type"], right_on=["Product", "Product type"], how="left")
 
-    # Treatment of all derivatives including undefined derivatives (eg. equity return swaps etc.)
-    merged_df.loc[merged_df["Product type"] == "Derivative", columns_to_update] = "Derivatives"
+    # Update the instrument for Derivatives as the Product description
+    merged_df.loc[merged_df["Product type"] == "Derivative", columns_to_update] = "Derivative"
     merged_df.loc[merged_df["Product type"] == "Derivative", "Product description"] = merged_df["Instrument"]
 
     return merged_df
