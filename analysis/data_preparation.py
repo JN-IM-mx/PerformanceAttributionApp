@@ -27,6 +27,7 @@ def prepare_data(ptf_list, bm, ptf_df, bm_df, classifications_df):
     taxonomy_to_product_type = {
         "Equities": "Equity",
         "Fund S/R asset": "Equity",
+        "Exchange Traded Funds": "Equity",
         "Bonds": "Bond",
         "Fund fee": "Fees",
         "Fund share fee": "Fees",
