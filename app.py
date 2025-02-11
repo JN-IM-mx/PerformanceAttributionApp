@@ -81,8 +81,6 @@ else:
 if correct_format:
 
     # User settings
-    contribution_attribution_toggle = st.segmented_control("Contribution or attribution", ["Attribution", "Contribution"],
-                                              default="Attribution", label_visibility="hidden")
     settings_row = st.columns(6)
     model = settings_row[0].selectbox("Model", ["Brinson-Fachler",
                                                 "Brinson-Hood-Beebower",
