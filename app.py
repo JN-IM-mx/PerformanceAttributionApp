@@ -14,7 +14,7 @@ from utils.styling import style_dataframe, dataframe_height
 
 # Streamlit page configuration
 st.set_page_config(
-    page_title="Performance attribution",
+    page_title="Performance contribution and attribution",
     page_icon=":bar_chart:",
     layout="wide"
 )
@@ -81,8 +81,15 @@ else:
 if correct_format:
 
     # User settings
+    contribution_attribution_toggle = st.segmented_control("Contribution or attribution", ["Attribution", "Contribution"],
+                                              default="Attribution", label_visibility="hidden")
     settings_row = st.columns(6)
-    model = settings_row[0].selectbox("Model", ["Brinson-Fachler", "Brinson-Hood-Beebower", "Equity contribution", "Fixed Income attribution", "Fixed Income contribution"])
+    model = settings_row[0].selectbox("Model", ["Brinson-Fachler",
+                                                "Brinson-Hood-Beebower",
+                                                "Equity contribution",
+                                                "Fixed Income attribution",
+                                                "Fixed Income contribution"])
+
     if model == "Brinson-Fachler" or model == "Brinson-Hood-Beebower" or model == "Fixed Income attribution":
         smoothing_algorithm = settings_row[1].selectbox("Smoothing algorithm", ["GRAP (Frongello)", "Modified Frongello"])
     else:
