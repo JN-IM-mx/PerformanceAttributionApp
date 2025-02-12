@@ -29,6 +29,8 @@ def prepare_data(ptf_list, bm, ptf_df, bm_df, classifications_df):
         "Fund S/R asset": "Equity",
         "Exchange Traded Funds": "Equity",
         "Bonds": "Bond",
+        "Callable Bonds": "Bond",
+        "Convertible Bonds": "Bond",
         "Fund fee": "Fees",
         "Fund share fee": "Fees",
         "Cash": "Cash"
