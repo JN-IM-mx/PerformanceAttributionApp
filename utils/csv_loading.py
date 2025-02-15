@@ -45,16 +45,6 @@ def validate_dataframes(portfolios_df, benchmarks_df):
                                        'DeltaMvCredit']
 
         try:
-            # # Read just the first row to check columns
-            # df1 = pd.read_csv(portfolios_file, nrows=1)
-            # st.write(df1)
-            # df2 = pd.read_csv(benchmarks_file, nrows=1)
-            # st.write(df2)
-
-            # Clear the uploaded files buffers
-            # portfolios_file.seek(0)
-            # benchmarks_file.seek(0)
-
             # Get the uploaded file's columns
             ptf_uploaded_columns = portfolios_df.columns.tolist()
             bm_uploaded_columns = benchmarks_df.columns.tolist()
