@@ -61,7 +61,7 @@ if correct_format:
             effects = st.multiselect("Effects", effects_full_list, default_effects)
         smoothing_algorithm = settings_row1[4].pills("Smoothing algorithm", ["Frongello", "Modified Frongello"], default="Frongello")
 
-    # Second row of settings: Portfolios, benchmarks, performance period and decimals
+    # Second row of user settings: portfolios, benchmarks, performance period and decimals
     settings_row2 = st.columns(5)
 
     # Portfolios and benchmark to be loaded
@@ -88,7 +88,6 @@ if correct_format:
     selected_portfolios = settings_row2[0].multiselect("Portfolios", portfolios, default_portfolio)
     selected_benchmark = settings_row2[1].selectbox("Benchmark", benchmarks,index=default_benchmark_index)
 
-
     # Reference date selection using predefined performance periods
     performance_period = settings_row2[2].pills("Performance period", ["YTD", "MTD", "WTD", "1D"], default="YTD")
     performance_period_date_dict = {
@@ -100,7 +99,6 @@ if correct_format:
     reference_date = performance_period_date_dict[performance_period]
 
     decimal_places = settings_row2[3].segmented_control("Decimal places", [2, 4, 8, 12], default=2)
-
 
     # Add some vertical space
     st.text("")
