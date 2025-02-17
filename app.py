@@ -89,14 +89,18 @@ if correct_format:
     selected_benchmark = settings_row2[1].selectbox("Benchmark", benchmarks,index=default_benchmark_index)
 
     # Reference date selection using predefined performance periods
-    performance_period = settings_row2[2].pills("Performance period", ["YTD", "MTD", "WTD", "1D"], default="YTD")
+    performance_period = settings_row2[2].pills("Performance period", ["YTD", "MTD", "WTD", "1D", "Custom"], default="YTD")
     performance_period_date_dict = {
         "YTD": datetime.date(2019, 12, 31),
         "MTD": datetime.date(2020, 9, 30),
         "WTD": datetime.date(2020, 10, 2),
         "1D": datetime.date(2020, 10, 5)
     }
-    reference_date = performance_period_date_dict[performance_period]
+
+    if performance_period == "Custom":
+        reference_date = settings_row2[2].date_input("Select custom date", datetime.date(2019, 12, 31))
+    else:
+        reference_date = performance_period_date_dict[performance_period]
 
     decimal_places = settings_row2[3].segmented_control("Decimal places", [2, 4, 8, 12], default=2)
 
