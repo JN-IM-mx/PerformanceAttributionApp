@@ -90,16 +90,20 @@ if correct_format:
     selected_benchmark = settings_row2[1].selectbox("Benchmark", benchmarks,index=default_benchmark_index)
 
     # Reference date selection using predefined performance periods
-    performance_period = settings_row2[2].pills("Performance period", ["YTD", "MTD", "WTD", "1D", "Custom"], default="YTD")
+    # Note these are hardcoded dates based on the tpk data
+    performance_period = settings_row2[2].pills("Performance period", ["1Y", "YTD","6M","1M", "MTD", "WTD", "1D", "Custom"], default="YTD")
     performance_period_date_dict = {
-        "YTD": datetime.date(2019, 12, 31),
-        "MTD": datetime.date(2020, 9, 30),
-        "WTD": datetime.date(2020, 10, 2),
-        "1D": datetime.date(2020, 10, 5)
+        "1Y": datetime.date(2019, 11, 1),
+        "YTD": datetime.date(2020, 1, 1),
+        "6M": datetime.date(2020, 5, 1),
+        "1M": datetime.date(2020, 10, 1),
+        "MTD": datetime.date(2020, 10, 1),
+        "WTD": datetime.date(2020, 10, 5),
+        "1D": datetime.date(2020, 10, 6)
     }
 
     if performance_period == "Custom":
-        start_date = settings_row2[2].date_input("Select start date", datetime.date(2019, 12, 31))
+        start_date = settings_row2[2].date_input("Select start date", datetime.date(2020, 1, 1))
         end_date = settings_row2[2].date_input("Select end date", datetime.date(2020, 10, 6))
     else:
         start_date = performance_period_date_dict[performance_period]
