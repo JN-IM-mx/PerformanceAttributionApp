@@ -1,3 +1,5 @@
+from .brinson_fachler import brinson_fachler
+
 def excess_return(row, effect):
     delta_mv_ptf = "DeltaMv" + effect + "_portfolio"
     delta_mv_bm = "DeltaMv" + effect + "_benchmark"
@@ -7,7 +9,7 @@ def excess_return(row, effect):
     return contrib_ptf - contrib_bm
 
 
-def effects_analysis(data_df, classification_criteria, effects):
+def effects_analysis(data_df, classification_criteria, effects, credit_mode):
     # Sum all values across the instruments
     attribution_df = data_df.groupby(["Start Date", classification_criteria]).agg({
                            "DeltaMv_portfolio": "sum",
@@ -28,6 +30,8 @@ def effects_analysis(data_df, classification_criteria, effects):
                            "DeltaMvIncome_benchmark": "sum",
                            "DeltaMvYieldCurves_benchmark": "sum",
                            "DeltaMvCredit_benchmark": "sum",
+                           "PreviousMv_portfolio": "sum",
+                           "PreviousMv_benchmark": "sum",
                            "TotalPreviousMv_portfolio": "first",
                            "TotalPreviousMv_benchmark": "first",
                            "TotalReturn_portfolio": "first",
@@ -41,7 +45,31 @@ def effects_analysis(data_df, classification_criteria, effects):
     attribution_df["Rolldown"] = attribution_df.apply(excess_return, axis=1, args=("Rolldown",))
     attribution_df["Income"] = attribution_df.apply(excess_return, axis=1, args=("Income",))
     attribution_df["Yield curve"] = attribution_df.apply(excess_return, axis=1, args=("YieldCurves",))
-    attribution_df["Credit"] = attribution_df.apply(excess_return, axis=1, args=("Credit",))
+
+    if credit_mode == "brinson":
+        # Prepare credit-specific DataFrame for brinson_fachler
+        credit_df = attribution_df[["Start Date", classification_criteria,
+                                    "DeltaMvCredit_portfolio", "PreviousMv_portfolio", "DeltaMvCredit_benchmark",
+                                    "PreviousMv_benchmark", "TotalPreviousMv_portfolio", "TotalReturn_portfolio",
+                                    "TotalPreviousMv_benchmark", "TotalReturn_benchmark"]].copy()
+        credit_df = credit_df.rename(columns={
+            "DeltaMvCredit_portfolio": "DeltaMv_portfolio",
+            "DeltaMvCredit_benchmark": "DeltaMv_benchmark"
+        })
+        credit_brinson = brinson_fachler(credit_df, classification_criteria)
+        # Merge allocation/selection back
+        attribution_df = attribution_df.merge(
+            credit_brinson[["Start Date", classification_criteria, "Allocation", "Selection"]],
+            on=["Start Date", classification_criteria],
+            how="left"
+        )
+        attribution_df = attribution_df.rename(columns={
+            "Allocation": "Credit allocation",
+            "Selection": "Credit selection"
+        })
+    else:
+        attribution_df["Credit"] = attribution_df.apply(excess_return, axis=1, args=("Credit",))
+
     attribution_df["Excess return"] = attribution_df.apply(excess_return, axis=1, args=("",))
 
     attribution_df["Residual"] = attribution_df["Excess return"] - attribution_df[effects].sum(axis=1)
