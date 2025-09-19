@@ -60,12 +60,12 @@ if correct_format:
             # Define effects list based on fixed income model
             effects_full_list = ["Income", "Yield curve", "Credit", "Rolldown", "Trading", "Global other"]
             if model == "Standard fixed income attribution":
-                effects = st.multiselect("Effects", effects_full_list, ["Income", "Yield curve", "Credit"])
+                effects = st.multiselect("Effects", effects_full_list, ["Rolldown", "Income", "Yield curve", "Credit"])
             else:
                 effects_brinson = effects_full_list.copy()
                 credit_index = effects_brinson.index("Credit")
                 effects_brinson[credit_index:credit_index+1] = ["Credit allocation", "Credit selection"]
-                effects = st.multiselect("Effects", effects_brinson, ["Income", "Yield curve", "Credit allocation", "Credit selection"])
+                effects = st.multiselect("Effects", effects_brinson, ["Rolldown", "Income", "Yield curve", "Credit allocation", "Credit selection"])
                 effects_brinson_instrument = list(dict.fromkeys(["Credit" if effect in ["Credit allocation", "Credit selection"] else effect for effect in effects]))
         smoothing_algorithm = settings_row1[4].pills("Smoothing algorithm", ["Frongello", "Modified Frongello"], default="Frongello")
 
