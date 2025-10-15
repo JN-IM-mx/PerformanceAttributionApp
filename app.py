@@ -56,10 +56,17 @@ if correct_format:
         if asset_class == "Equity":
             model = settings_row1[3].pills("Model", ["Brinson-Fachler", "Brinson-Hood-Beebower"], default="Brinson-Fachler")
         else:
-            model = settings_row1[3].pills("Model", ["Fixed income attribution"], default="Fixed income attribution", disabled=True)
+            model = settings_row1[3].pills("Model", ["Standard fixed income attribution", "with Brinson Fachler on credit (POC)"], default="Standard fixed income attribution")
+            # Define effects list based on fixed income model
             effects_full_list = ["Income", "Yield curve", "Credit", "Rolldown", "Trading", "Global other"]
-            default_effects = ["Income", "Yield curve", "Credit"]
-            effects = st.multiselect("Effects", effects_full_list, default_effects)
+            if model == "Standard fixed income attribution":
+                effects = st.multiselect("Effects", effects_full_list, ["Rolldown", "Income", "Yield curve", "Credit"])
+            else:
+                effects_brinson = effects_full_list.copy()
+                credit_index = effects_brinson.index("Credit")
+                effects_brinson[credit_index:credit_index+1] = ["Credit allocation", "Credit selection"]
+                effects = st.multiselect("Effects", effects_brinson, ["Rolldown", "Income", "Yield curve", "Credit allocation", "Credit selection"])
+                effects_brinson_instrument = list(dict.fromkeys(["Credit" if effect in ["Credit allocation", "Credit selection"] else effect for effect in effects]))
         smoothing_algorithm = settings_row1[4].pills("Smoothing algorithm", ["Frongello", "Modified Frongello"], default="Frongello")
 
     # Second row of user settings: portfolios, benchmarks, performance period and decimals
@@ -145,8 +152,10 @@ if correct_format:
                 master_df = brinson_fachler(data_df, classification_criteria)
             elif model == "Brinson-Hood-Beebower":
                 master_df = brinson_hood_beebower(data_df, classification_criteria)
-            elif model == "Fixed income attribution":
-                master_df = effects_analysis(data_df, classification_criteria, effects)
+            elif model == "Standard fixed income attribution":
+                master_df = effects_analysis(data_df, classification_criteria, effects, credit_mode="standard")
+            elif model == "with Brinson Fachler on credit (POC)":
+                master_df = effects_analysis(data_df, classification_criteria, effects, credit_mode="brinson")
 
             # Apply the smoothing
             if smoothing_algorithm == "Frongello":
@@ -180,8 +189,10 @@ if correct_format:
                 instruments_df = brinson_fachler_instrument(data_df, classification_criteria, classification_value)
             elif model == "Brinson-Hood-Beebower":
                 instruments_df = brinson_hood_beebower_instrument(data_df, classification_criteria, classification_value)
-            elif model == "Fixed income attribution":
+            elif model == "Standard fixed income attribution":
                 instruments_df = effects_analysis_instrument(data_df, classification_criteria, classification_value, effects)
+            elif model == "with Brinson Fachler on credit (POC)":
+                instruments_df = effects_analysis_instrument(data_df, classification_criteria, classification_value, effects_brinson_instrument)
 
             # Apply the smoothing
             if smoothing_algorithm == "Frongello":
