@@ -5,6 +5,9 @@ A Streamlit web application for analyzing portfolio performance against benchmar
 using various attribution models and contribution analysis methods.
 """
 import streamlit as st
+import datetime
+import numpy as np
+import pandas as pd
 from config.settings import PAGE_CONFIG, CLASSIFICATION_CRITERIA
 from utils import load_csv_files, validate_dataframes, style_dataframe, dataframe_height
 from ui.components import render_settings
@@ -25,7 +28,8 @@ settings_row1 = st.columns(5)
 data_source_toggle = settings_row1[0].pills(
     "Data source",
     ["Use TPK data", "Upload csv files"],
-    default="Use TPK data"
+    default="Use TPK data",
+    key="data_source_toggle"
 )
 
 # Load CSV files
@@ -41,28 +45,16 @@ if not portfolio_df.empty and not benchmark_df.empty:
 
 # Main application logic
 if correct_format:
-    # Render settings panel and get user selections
-    settings = render_settings(portfolio_df, benchmark_df, data_source_toggle)
-
-    # Add vertical spacing
-    st.text("")
-    st.text("")
-
-    # Check if portfolios are selected
-    if len(settings['portfolios']) > 0:
-        # Create layout columns
-        analysis_master_row = st.columns([0.25, 0.75])
-        analysis_details_row = st.columns([0.25, 0.75])
     # User settings
-    asset_class = settings_row1[1].pills("Asset class", ["Equity", "Fixed income"], default="Equity")
-    contribution_attribution = settings_row1[2].pills("Analysis", ["Attribution", "Contribution"], default="Attribution")
+    asset_class = settings_row1[1].pills("Asset class", ["Equity", "Fixed income"], default="Equity", key="asset_class")
+    contribution_attribution = settings_row1[2].pills("Analysis", ["Attribution", "Contribution"], default="Attribution", key="contribution_attribution")
 
     # Model selection in case of Attribution analysis
     if contribution_attribution == "Attribution":
         if asset_class == "Equity":
-            model = settings_row1[3].pills("Model", ["Brinson-Fachler", "Brinson-Hood-Beebower"], default="Brinson-Fachler")
+            model = settings_row1[3].pills("Model", ["Brinson-Fachler", "Brinson-Hood-Beebower"], default="Brinson-Fachler", key="model_equity")
         else:
-            model = settings_row1[3].pills("Model", ["Standard fixed income attribution", "with Brinson Fachler on credit (POC)"], default="Standard fixed income attribution")
+            model = settings_row1[3].pills("Model", ["Standard fixed income attribution", "with Brinson Fachler on credit (POC)"], default="Standard fixed income attribution", key="model_fixed_income")
             # Define effects list based on fixed income model
             effects_full_list = ["Income", "Yield curve", "Credit", "Rolldown", "Trading", "Global other"]
             if model == "Standard fixed income attribution":
@@ -73,7 +65,7 @@ if correct_format:
                 effects_brinson[credit_index:credit_index+1] = ["Credit allocation", "Credit selection"]
                 effects = st.multiselect("Effects", effects_brinson, ["Rolldown", "Income", "Yield curve", "Credit allocation", "Credit selection"])
                 effects_brinson_instrument = list(dict.fromkeys(["Credit" if effect in ["Credit allocation", "Credit selection"] else effect for effect in effects]))
-        smoothing_algorithm = settings_row1[4].pills("Smoothing algorithm", ["Frongello", "Modified Frongello"], default="Frongello")
+        smoothing_algorithm = settings_row1[4].pills("Smoothing algorithm", ["Frongello", "Modified Frongello"], default="Frongello", key="smoothing_algorithm")
 
     # Second row of user settings: portfolios, benchmarks, performance period and decimals
     settings_row2 = st.columns(5)
@@ -104,7 +96,7 @@ if correct_format:
 
     # Reference date selection using predefined performance periods
     # Note these are hardcoded dates based on the tpk data
-    performance_period = settings_row2[2].pills("Performance period", ["1Y", "YTD","6M","1M", "MTD", "WTD", "1D", "Custom"], default="YTD")
+    performance_period = settings_row2[2].pills("Performance period", ["1Y", "YTD","6M","1M", "MTD", "WTD", "1D", "Custom"], default="YTD", key="performance_period")
     performance_period_date_dict = {
         "1Y": datetime.date(2019, 11, 1),
         "YTD": datetime.date(2020, 1, 1),
@@ -133,47 +125,29 @@ if correct_format:
     analysis_details_row = st.columns([0.25, 0.75])
 
     if len(selected_portfolios) > 0:
-        # Radio button in the left pane, allowing to select a classification criteria
-        if asset_class == "Fixed income":
-            classification_criteria = analysis_master_row[0].radio(
-                "Allocation criteria",
-                ["S&P rating", "Fitch rating", "Moody's rating", "GICS sector", "GICS industry group", "GICS industry", "GICS sub-industry", "Region", "Country"],
-            )
-        else:
-            classification_criteria = analysis_master_row[0].radio(
-                "Allocation criteria",
-                ["GICS sector", "GICS industry group", "GICS industry", "GICS sub-industry", "Region", "Country"],
-            )
-
-        # Prepare the data
-        data_df = prepare_data(selected_portfolios, selected_benchmark, portfolio_df, benchmark_df, classifications_df, start_date, end_date)
-
-        # Apply the requested analysis
-        if contribution_attribution == "Contribution":
-            master_df = contribution(data_df, classification_criteria)
-            master_df = contribution_smoothing(master_df, classification_criteria)
-        else:
-            # Apply the model (without any smoothing)
-            if model == "Brinson-Fachler":
-                master_df = brinson_fachler(data_df, classification_criteria)
-            elif model == "Brinson-Hood-Beebower":
-                master_df = brinson_hood_beebower(data_df, classification_criteria)
-            elif model == "Standard fixed income attribution":
-                master_df = effects_analysis(data_df, classification_criteria, effects, credit_mode="standard")
-            elif model == "with Brinson Fachler on credit (POC)":
-                master_df = effects_analysis(data_df, classification_criteria, effects, credit_mode="brinson")
-
-            # Apply the smoothing
-            if smoothing_algorithm == "Frongello":
-                master_df = grap_smoothing(master_df, classification_criteria)
-            elif smoothing_algorithm == "Modified Frongello":
-                master_df = modified_frongello_smoothing(master_df, classification_criteria)
-
         # Render classification criteria selector
         classification_criteria = analysis_master_row[0].radio(
             "Allocation criteria",
-            CLASSIFICATION_CRITERIA[settings['asset_class']]
+            CLASSIFICATION_CRITERIA[asset_class],
+            key="classification_criteria"
         )
+
+        # Create settings dict for analysis
+        settings = {
+            'asset_class': asset_class,
+            'analysis_type': contribution_attribution,
+            'portfolios': selected_portfolios,
+            'benchmark': selected_benchmark,
+            'start_date': start_date,
+            'end_date': end_date,
+            'decimals': decimal_places
+        }
+
+        if contribution_attribution == "Attribution":
+            settings['model'] = model
+            settings['smoothing'] = smoothing_algorithm
+            if asset_class == "Fixed income":
+                settings['effects'] = effects
 
         # Run the analysis
         master_df, get_instruments = run_analysis(
@@ -202,7 +176,8 @@ if correct_format:
         # Render classification value selector
         classification_value = analysis_details_row[0].radio(
             f"Select a {classification_criteria}:",
-            classification_values
+            classification_values,
+            key="classification_value"
         )
 
         # Get instrument-level details
@@ -210,38 +185,10 @@ if correct_format:
 
         # Display instrument-level results
         analysis_details_row[1].markdown("**Instruments details:**")
-        # Drill-down analysis for specific classification
-        # Allow user to drill down by classification
-        classification_values = [val for val in master_df[classification_criteria].to_list() if
-                                 val not in ["Total"]]
-        classification_value = analysis_details_row[0].radio(f"Select a {classification_criteria}:",
-                                                             classification_values)
-
-        # Apply the requested analysis at instrument level
-        if contribution_attribution == "Contribution":
-            instruments_df = contribution_instrument(data_df, classification_criteria, classification_value)
-            details_instruments_df = contribution_smoothing(instruments_df, "Product description")
-        else:
-            # Apply the model (without any smoothing)
-            if model == "Brinson-Fachler":
-                instruments_df = brinson_fachler_instrument(data_df, classification_criteria, classification_value)
-            elif model == "Brinson-Hood-Beebower":
-                instruments_df = brinson_hood_beebower_instrument(data_df, classification_criteria, classification_value)
-            elif model == "Standard fixed income attribution":
-                instruments_df = effects_analysis_instrument(data_df, classification_criteria, classification_value, effects)
-            elif model == "with Brinson Fachler on credit (POC)":
-                instruments_df = effects_analysis_instrument(data_df, classification_criteria, classification_value, effects_brinson_instrument)
-
-            # Apply the smoothing
-            if smoothing_algorithm == "Frongello":
-                details_instruments_df = grap_smoothing(instruments_df,"Product description")
-            elif smoothing_algorithm == "Modified Frongello":
-                details_instruments_df = modified_frongello_smoothing(instruments_df, "Product description")
-
-        analysis_details_row[1].markdown("**Instruments details**:")
         analysis_details_row[1].dataframe(
             style_dataframe(details_df, settings['decimals']),
             hide_index=True,
             width=1000,
             height=dataframe_height(details_df)
         )
+
