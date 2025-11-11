@@ -6,7 +6,8 @@ from .model_registry import (
     MODEL_REGISTRY,
     CONTRIBUTION_REGISTRY,
     SMOOTHING_REGISTRY,
-    CONTRIBUTION_SMOOTHING
+    CONTRIBUTION_SMOOTHING,
+    MEASUREMENT_REGISTRY
 )
 
 
@@ -41,6 +42,24 @@ def run_analysis(settings, portfolio_df, benchmark_df, classifications_df, class
             data_df,
             classification_criteria
         )
+    elif settings['analysis_type'] == "Measurement & Analytics":
+        # Run measurement & analytics using the registry
+        frequency = settings.get('frequency', 'daily')
+        master_df = MEASUREMENT_REGISTRY["master"](
+            data_df,
+            classification_criteria=None,
+            frequency=frequency
+        )
+        # Create an instruments-style function (to keep the same interface as other analyses)
+        def get_instruments(classification_value=None):
+            return MEASUREMENT_REGISTRY["instrument"](
+                data_df,
+                classification_criteria,
+                classification_value,
+                frequency=frequency
+            )
+
+        instrument_func = get_instruments
     else:
         master_df, instrument_func = _run_attribution_analysis(
             data_df,

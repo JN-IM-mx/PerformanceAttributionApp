@@ -13,7 +13,9 @@ from analysis import (
     contribution_instrument,
     grap_smoothing,
     modified_frongello_smoothing,
-    contribution_smoothing
+    contribution_smoothing,
+    measurement_analytics_master,
+    measurement_analytics_instrument
 )
 
 # Attribution model registry
@@ -51,3 +53,9 @@ SMOOTHING_REGISTRY = {
 
 # Contribution smoothing function
 CONTRIBUTION_SMOOTHING = contribution_smoothing
+
+# Measurement & Analytics registry
+MEASUREMENT_REGISTRY = {
+    "master": measurement_analytics_master,
+    "instrument": measurement_analytics_instrument
+}
