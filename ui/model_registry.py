@@ -27,7 +27,11 @@ MODEL_REGISTRY = {
         "master": brinson_hood_beebower,
         "instrument": brinson_hood_beebower_instrument
     },
-    "Fixed income attribution": {
+    "Standard fixed income attribution": {
+        "master": effects_analysis,
+        "instrument": effects_analysis_instrument
+    },
+    "with Brinson Fachler on credit (POC)": {
         "master": effects_analysis,
         "instrument": effects_analysis_instrument
     }

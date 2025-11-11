@@ -81,8 +81,10 @@ def _run_attribution_analysis(data_df, classification_criteria, model, smoothing
     model_funcs = MODEL_REGISTRY[model]
 
     # Run master-level analysis
-    if model == "Fixed income attribution":
-        master_df = model_funcs["master"](data_df, classification_criteria, effects)
+    if model == "Standard fixed income attribution":
+        master_df = model_funcs["master"](data_df, classification_criteria, effects, credit_mode="standard")
+    elif model == "with Brinson Fachler on credit (POC)":
+        master_df = model_funcs["master"](data_df, classification_criteria, effects, credit_mode="brinson")
     else:
         master_df = model_funcs["master"](data_df, classification_criteria)
 
@@ -92,12 +94,19 @@ def _run_attribution_analysis(data_df, classification_criteria, model, smoothing
 
     # Create instrument-level function
     def get_instruments(classification_value):
-        if model == "Fixed income attribution":
+        if model in ("Standard fixed income attribution", "with Brinson Fachler on credit (POC)"):
+            # Normalize effects: map display names back to actual column names for instruments
+            effects_normalized = None
+            if effects is not None:
+                effects_normalized = list(dict.fromkeys([
+                    "Credit" if effect in ["Credit allocation", "Credit selection"] else effect
+                    for effect in effects
+                ]))
             instruments_df = model_funcs["instrument"](
                 data_df,
                 classification_criteria,
                 classification_value,
-                effects
+                effects_normalized
             )
         else:
             instruments_df = model_funcs["instrument"](
