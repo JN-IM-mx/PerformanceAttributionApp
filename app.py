@@ -169,6 +169,15 @@ if correct_format:
             analysis_master_row[1].markdown("**Return vs Benchmark chart**")
             chart_df = master_df.set_index("Date")
             analysis_master_row[1].line_chart(chart_df)
+            # Display instrument-level measurement analytics (volatility table, etc.)
+            analysis_details_row[1].markdown("**Measurement analytics:**")
+            details_df = get_instruments(None)
+            analysis_details_row[1].dataframe(
+                style_dataframe(details_df, settings['decimals']),
+                hide_index=True,
+                width=1000,
+                height=dataframe_height(details_df)
+            )
         else:
             # Display master-level results for Attribution/Contribution
             analysis_master_row[1].markdown("**Performance analysis:**")
