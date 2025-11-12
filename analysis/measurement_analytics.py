@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 def measurement_analytics_master(merged_df: pd.DataFrame, classification_criteria=None, frequency: str = "daily") -> pd.DataFrame:
     daily_returns = calculate_measurement_analytics(merged_df, frequency=frequency)
@@ -32,11 +33,56 @@ def measurement_analytics_master(merged_df: pd.DataFrame, classification_criteri
 
 def measurement_analytics_instrument(merged_df: pd.DataFrame, classification_criteria=None, classification_value=None, frequency: str = "daily"):
     daily_returns = calculate_measurement_analytics(merged_df, frequency=frequency)
+    # keep csv export for debugging
     daily_returns.to_csv("debug_measurement_instrument.csv", index=False)
-    vol = 6
+
+    # Map frequency to periods per year for annualization
+    periods_per_year = {"daily": 252, "weekly": 52, "monthly": 12}
+    n = periods_per_year.get(frequency, 252)
+
+    ptf_returns = daily_returns.get("TotalReturn_portfolio", pd.Series(dtype=float))
+    bm_returns = daily_returns.get("TotalReturn_benchmark", pd.Series(dtype=float))
+
+    # Volatility - using population std dev for these and not annualizing - we should consider this further
+    vol = ptf_returns.std(ddof=0)
+    bmk_vol = bm_returns.std(ddof=0)
+
+    # Tracking error - std population deviation of excess returns
+    tracking_error = (ptf_returns - bm_returns).std(ddof=0)
+
+    # Max drawdown
+
+    # Beta
+    cov = np.cov(ptf_returns, bm_returns, ddof=0)[0, 1]
+    var_bmk = np.var(bm_returns, ddof=0)
+    beta = cov / var_bmk
+
+    # Correlation
+    var_ptf = np.var(ptf_returns, ddof=0)
+    correlation = cov / (np.sqrt(var_ptf) * np.sqrt(var_bmk))
+
+    # Information ratio
+
+    # Jensen alpha
+
+    # Sharpe ratio
+
+    # Sortino ratio
+
+    # Treynor ratio
+
     return pd.DataFrame([
         {"Metric": "Volatility", "Value": vol},
-        {"Metric": "Benchmark volatility", "Value": 0.0}
+        {"Metric": "Benchmark volatility", "Value": bmk_vol,},
+        {"Metric": "Tracking error", "Value": tracking_error,},
+        # {"Metric": "Max drawdown", "Value": max_drawdown,},
+        {"Metric": "Beta", "Value": beta,},
+        {"Metric": "Correlation", "Value": correlation,}
+        # {"Metric": "Information ratio", "Value": information_ratio,},
+        # {"Metric": "Jensen alpha", "Value": jensen_alpha,},
+        # {"Metric": "Sharpe ratio", "Value": sharpe_ratio,},
+        # {"Metric": "Sortino ratio", "Value": sortino_ratio,},
+        # {"Metric": "Treynor ratio", "Value": treynor_ratio,},
     ])
 
 
